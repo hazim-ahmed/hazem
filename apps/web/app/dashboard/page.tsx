@@ -1,0 +1,573 @@
+'use client';
+
+import React, { useState } from 'react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/axios';
+import Link from 'next/link';
+import { Plus, Calendar, DollarSign, ListOrdered, Lock, Unlock, Edit, Trash2 } from 'lucide-react';
+
+export default function DashboardPage() {
+  const queryClient = useQueryClient();
+  const [editingTx, setEditingTx] = useState<any>(null);
+  const [editAmount, setEditAmount] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editVoucher, setEditVoucher] = useState('');
+
+  // Fetch today's summary & auto journal status
+  const { data: todaySummary, isLoading: summaryLoading } = useQuery({
+    queryKey: ['today-overview'],
+    queryFn: async () => {
+      const res = await api.get('/today');
+      return res.data?.data || null;
+    },
+  });
+
+  // Fetch today's transactions
+  const { data: transactionsRaw } = useQuery({
+    queryKey: ['today-transactions'],
+    queryFn: async () => {
+      const res = await api.get('/today/transactions');
+      return res.data?.data || [];
+    },
+  });
+
+  const transactions = Array.isArray(transactionsRaw) ? transactionsRaw : [];
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: number; payload: any }) => {
+      const res = await api.patch(`/today/transactions/${id}`, payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['today-overview'] });
+      queryClient.invalidateQueries({ queryKey: ['today-transactions'] });
+      setEditingTx(null);
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'تعذر تعديل المصروف');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await api.delete(`/today/transactions/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['today-overview'] });
+      queryClient.invalidateQueries({ queryKey: ['today-transactions'] });
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'تعذر حذف المصروف');
+    },
+  });
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTx) return;
+    updateMutation.mutate({
+      id: editingTx.id,
+      payload: {
+        amount: parseFloat(editAmount),
+        description: editDescription,
+        manualVoucherNumber: editVoucher || null,
+      },
+    });
+  };
+
+  // Add Expense Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isCustomBeneficiary, setIsCustomBeneficiary] = useState(false);
+  const [newBeneficiaryName, setNewBeneficiaryName] = useState('');
+  const [newAmount, setNewAmount] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [newBeneficiaryId, setNewBeneficiaryId] = useState('');
+  const [newCategoryId, setNewCategoryId] = useState('');
+  const [newProjectId, setNewProjectId] = useState('');
+  const [newVoucher, setNewVoucher] = useState('');
+  const [newInvoice, setNewInvoice] = useState('');
+  const [addError, setAddError] = useState('');
+
+  // Master data for quick add
+  const { data: beneficiaries = [] } = useQuery({
+    queryKey: ['beneficiaries'],
+    queryFn: async () => (await api.get('/beneficiaries')).data?.data || [],
+    enabled: isAddModalOpen,
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => (await api.get('/expense-categories')).data?.data || [],
+    enabled: isAddModalOpen,
+  });
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects', true],
+    queryFn: async () => (await api.get('/projects', { params: { activeOnly: true } })).data?.data || [],
+    enabled: isAddModalOpen,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await api.post('/today/transactions', payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['today-overview'] });
+      queryClient.invalidateQueries({ queryKey: ['today-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+      setIsAddModalOpen(false);
+      setNewAmount('');
+      setNewDescription('');
+      setNewBeneficiaryId('');
+      setNewBeneficiaryName('');
+      setIsCustomBeneficiary(false);
+      setNewCategoryId('');
+      setNewProjectId('');
+      setNewVoucher('');
+      setNewInvoice('');
+      setAddError('');
+    },
+    onError: (err: any) => {
+      setAddError(err.response?.data?.message || 'تعذر إضافة المصروف');
+    },
+  });
+
+  const handleAddSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddError('');
+
+    if (isCustomBeneficiary) {
+      if (!newBeneficiaryName.trim()) {
+        setAddError('يرجى إدخال اسم المستفيد');
+        return;
+      }
+    } else {
+      if (!newBeneficiaryId) {
+        setAddError('يرجى اختيار المستفيد من القائمة');
+        return;
+      }
+    }
+
+    if (!newCategoryId) {
+      setAddError('يرجى اختيار نوع المصروف');
+      return;
+    }
+    if (!newAmount || parseFloat(newAmount) <= 0) {
+      setAddError('يرجى إدخال مبلغ أكبر من صفر');
+      return;
+    }
+    if (!newDescription.trim()) {
+      setAddError('يرجى إدخال البيان / التفاصيل');
+      return;
+    }
+
+    createMutation.mutate({
+      beneficiaryId: isCustomBeneficiary ? null : parseInt(newBeneficiaryId, 10),
+      beneficiaryName: isCustomBeneficiary ? newBeneficiaryName.trim() : null,
+      categoryId: parseInt(newCategoryId, 10),
+      projectId: newProjectId ? parseInt(newProjectId, 10) : null,
+      amount: parseFloat(newAmount),
+      description: newDescription.trim(),
+      manualVoucherNumber: newVoucher.trim() || null,
+      invoiceNumber: newInvoice.trim() || null,
+    });
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-5 sm:space-y-6 pb-12">
+        {/* Bento Hero Banner */}
+        <div className="animate-fade-in-up relative overflow-hidden bg-gradient-to-r from-cyan-600 via-teal-600 to-blue-700 dark:from-slate-950 dark:via-cyan-950 dark:to-slate-900 rounded-2xl sm:rounded-[28px] p-5 sm:p-7 text-white shadow-xl dark:shadow-2xl border border-cyan-400/30 dark:border-cyan-500/20">
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-cyan-500/20 dark:bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6">
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2 bg-white/20 dark:bg-cyan-500/15 backdrop-blur-md w-fit px-3.5 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-black text-white dark:text-cyan-300 border border-white/30 dark:border-cyan-500/30">
+                <Calendar className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-300 dark:text-amber-400" />
+                <span>توقيع الخادم السعودي: {todaySummary?.systemDate || '...'}</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white leading-snug">
+                يومية اليوم التلقائية ({todaySummary?.journalNumber || '...'})
+              </h1>
+              <p className="text-xs sm:text-sm text-cyan-50 dark:text-slate-300 font-bold max-w-xl">
+                إدارة وسجل مصروفات اليومية الفورية، تتبع السندات والفواتير مع الربط التلقائي للمشاريع.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+              <div className="bg-black/20 dark:bg-slate-900/60 backdrop-blur-md px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-white/20 dark:border-slate-700/80 text-center shadow-inner">
+                <span className="text-[10px] sm:text-[11px] text-cyan-100 dark:text-slate-400 block font-extrabold uppercase">حالة الجلسة</span>
+                <span className={`font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 mt-0.5 ${
+                  todaySummary?.status === 'OPEN' ? 'text-amber-300 dark:text-cyan-400' : 'text-rose-300 dark:text-rose-400'
+                }`}>
+                  {todaySummary?.status === 'OPEN' ? <Unlock className="w-3.5 sm:w-4 h-3.5 sm:h-4" /> : <Lock className="w-3.5 sm:w-4 h-3.5 sm:h-4" />}
+                  <span>{todaySummary?.status === 'OPEN' ? 'يومية مفتوحة (OPEN)' : 'يومية مغلقة (CLOSED)'}</span>
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-xs sm:text-sm"
+                >
+                  <Plus className="w-4 sm:w-5 h-4 sm:h-5 stroke-[3]" />
+                  <span>إضافة مصروف سريع</span>
+                </button>
+
+                <Link
+                  href="/transactions/new"
+                  className="flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-white font-black px-4 py-3 sm:py-3.5 rounded-2xl border border-white/30 dark:border-slate-700/80 transition-all hover:scale-[1.02] active:scale-[0.98] text-xs sm:text-sm backdrop-blur-md"
+                >
+                  <span>النموذج الكامل</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bento Metrics Tiles */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+          <div className="animate-stagger-1 fintech-card fintech-card-hover p-5 sm:p-6 flex items-center justify-between">
+            <div className="space-y-1 sm:space-y-1.5">
+              <span className="text-[11px] sm:text-xs font-black text-slate-600 dark:text-cyan-300 uppercase tracking-widest block">إجمالي مصروفات يومية اليوم</span>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-cyan-600 dark:text-cyan-400 font-mono-num tracking-tight">
+                {(todaySummary?.totalAmount || 0).toLocaleString()} <span className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-300">ر.س</span>
+              </h3>
+              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-cyan-700 dark:text-cyan-300 font-bold pt-1">
+                <span className="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-ping" />
+                <span>يُحدث فورياً مع كل سند إدخال</span>
+              </div>
+            </div>
+            <div className="w-14 sm:w-16 h-14 sm:h-16 bg-cyan-500 dark:bg-gradient-to-tr dark:from-cyan-500 dark:via-teal-500 dark:to-blue-600 rounded-2xl text-white dark:text-slate-950 flex items-center justify-center shadow-md dark:shadow-lg glow-cyan shrink-0 border border-cyan-400/30">
+              <DollarSign className="w-7 sm:w-8 h-7 sm:h-8 stroke-[2.5]" />
+            </div>
+          </div>
+
+          <div className="animate-stagger-2 fintech-card fintech-card-hover p-5 sm:p-6 flex items-center justify-between">
+            <div className="space-y-1 sm:space-y-1.5">
+              <span className="text-[11px] sm:text-xs font-black text-slate-600 dark:text-blue-300 uppercase tracking-widest block">عدد عمليات سندات اليوم</span>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white font-mono-num tracking-tight">
+                {todaySummary?.transactionsCount || 0} <span className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-300">سندات</span>
+              </h3>
+              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-blue-700 dark:text-blue-300 font-bold pt-1">
+                <span className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400" />
+                <span>مدرجة في سجل اليومية الحالي</span>
+              </div>
+            </div>
+            <div className="w-14 sm:w-16 h-14 sm:h-16 bg-blue-600 dark:bg-gradient-to-tr dark:from-blue-600 dark:via-indigo-600 dark:to-cyan-500 rounded-2xl text-white flex items-center justify-center shadow-md dark:shadow-lg glow-blue shrink-0 border border-blue-400/30">
+              <ListOrdered className="w-7 sm:w-8 h-7 sm:h-8" />
+            </div>
+          </div>
+        </div>
+
+        {/* Bento Transactions Table */}
+        <div className="animate-stagger-3 fintech-card p-6 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div>
+              <h3 className="font-black text-xl text-slate-900 dark:text-white tracking-tight">جدول مصروفات وسندات اليوم الحية</h3>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-200 mt-1">سجل مقيد لكافة السندات المالية الصادرة اليوم</p>
+            </div>
+            <span className="text-xs font-black bg-cyan-50 text-cyan-800 border border-cyan-200 dark:bg-slate-900 dark:text-cyan-400 dark:border-cyan-500/30 px-4 py-1.5 rounded-full font-mono-num">
+              سجل اليومية: {todaySummary?.journalNumber || '...'}
+            </span>
+          </div>
+
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80">
+            <table className="w-full text-right border-collapse text-sm">
+              <thead>
+                <tr className="bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                  <th className="p-4">رقم السند اليدوي</th>
+                  <th className="p-4">المستفيد</th>
+                  <th className="p-4">التفاصيل والبيان</th>
+                  <th className="p-4">المشروع</th>
+                  <th className="p-4">رقم الفاتورة</th>
+                  <th className="p-4">المبلغ (ر.س)</th>
+                  <th className="p-4">وقت التسجيل</th>
+                  <th className="p-4 text-center">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-12 text-center text-slate-500 dark:text-slate-300 font-bold">
+                      لم يتم إدراج أي مصروفات في يومية اليوم حتى الآن. اضغط على "إضافة مصروف سريع" للبدء.
+                    </td>
+                  </tr>
+                ) : (
+                  transactions.map((tx: any) => (
+                    <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/90 transition-colors">
+                      <td className="p-4 font-mono-num font-black text-amber-600 dark:text-amber-400">{tx.manualVoucherNumber || '-'}</td>
+                      <td className="p-4 font-bold text-slate-900 dark:text-white">{tx.beneficiary?.name}</td>
+                      <td className="p-4 text-slate-700 dark:text-slate-200 font-semibold">{tx.description}</td>
+                      <td className="p-4">
+                        {tx.project ? (
+                          <span className="bg-cyan-50 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 px-3 py-1 rounded-xl text-xs font-bold border border-cyan-200 dark:border-cyan-800/60">
+                            {tx.project.projectName}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500 dark:text-slate-400 text-xs font-bold">مصروف عام/نثري</span>
+                        )}
+                      </td>
+                      <td className="p-4 font-mono-num text-xs text-slate-600 dark:text-slate-300">{tx.invoiceNumber || '-'}</td>
+                      <td className="p-4 font-mono-num font-black text-cyan-700 dark:text-cyan-400 text-base">{Number(tx.amount).toLocaleString()} ر.س</td>
+                      <td className="p-4 text-xs text-slate-600 dark:text-slate-300 font-mono-num">
+                        {new Date(tx.createdAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="p-4 flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingTx(tx);
+                            setEditAmount(tx.amount.toString());
+                            setEditDescription(tx.description);
+                            setEditVoucher(tx.manualVoucherNumber || '');
+                          }}
+                          className="p-2 bg-cyan-50 hover:bg-cyan-100 dark:bg-blue-950/80 dark:hover:bg-blue-900 text-cyan-700 dark:text-blue-300 rounded-xl text-xs font-bold transition border border-cyan-200 dark:border-blue-800/60"
+                          title="تعديل المصروف"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            if (confirm('هل أنت تأكد من حذف هذا المصروف؟')) {
+                              deleteMutation.mutate(tx.id);
+                            }
+                          }}
+                          className="p-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 rounded-xl text-xs font-bold transition border border-rose-900/60"
+                          title="حذف المصروف"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Quick Add Modal */}
+        {isAddModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
+              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
+                <h3 className="font-black text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                  <Plus className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                  <span>إضافة مصروف جديد سريع</span>
+                </h3>
+                <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white font-black text-lg">✕</button>
+              </div>
+
+              {addError && <div className="p-3.5 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-2xl font-bold">{addError}</div>}
+
+              <form onSubmit={handleAddSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <label className="block text-xs font-black text-slate-700 dark:text-slate-300">المستفيد *</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomBeneficiary(!isCustomBeneficiary);
+                          setNewBeneficiaryId('');
+                          setNewBeneficiaryName('');
+                        }}
+                        className="text-[11px] text-cyan-700 dark:text-amber-400 font-extrabold hover:underline"
+                      >
+                        {isCustomBeneficiary ? 'اختر من القائمة' : '+ كتابة اسم جديد'}
+                      </button>
+                    </div>
+
+                    {isCustomBeneficiary ? (
+                      <input
+                        type="text"
+                        required
+                        value={newBeneficiaryName}
+                        onChange={(e) => setNewBeneficiaryName(e.target.value)}
+                        placeholder="اكتب اسم المستفيد/الشركة..."
+                        className="w-full p-3 border border-cyan-300 dark:border-amber-500/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
+                      />
+                    ) : (
+                      <select
+                        required
+                        value={newBeneficiaryId}
+                        onChange={(e) => setNewBeneficiaryId(e.target.value)}
+                        className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
+                      >
+                        <option value="">اختر المستفيد...</option>
+                        {beneficiaries.map((b: any) => (
+                          <option key={b.id} value={b.id}>{b.name}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">نوع المصروف (التصنيف) *</label>
+                    <select
+                      required
+                      value={newCategoryId}
+                      onChange={(e) => setNewCategoryId(e.target.value)}
+                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
+                    >
+                      <option value="">اختر نوع المصروف...</option>
+                      {categories.map((c: any) => (
+                        <option key={c.id} value={c.id}>{c.name} ({c.code})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">المشروع (اختياري)</label>
+                    <select
+                      value={newProjectId}
+                      onChange={(e) => setNewProjectId(e.target.value)}
+                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
+                    >
+                      <option value="">غير مربوط بمشروع (مصروف عام/نثري)</option>
+                      {projects.map((p: any) => (
+                        <option key={p.id} value={p.id}>{p.projectName} ({p.projectCode})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">المبلغ (ر.س) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={newAmount}
+                      onChange={(e) => setNewAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-black text-cyan-700 dark:text-cyan-400 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none font-mono-num text-base"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">البيان / التفاصيل *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    placeholder="بيان تفصيلي بسببي المصروف..."
+                    className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">رقم السند اليدوي (اختياري)</label>
+                    <input
+                      type="text"
+                      value={newVoucher}
+                      onChange={(e) => setNewVoucher(e.target.value)}
+                      placeholder="1001"
+                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none font-mono-num"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">رقم الفاتورة (اختياري)</label>
+                    <input
+                      type="text"
+                      value={newInvoice}
+                      onChange={(e) => setNewInvoice(e.target.value)}
+                      placeholder="INV-9900"
+                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none font-mono-num"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-3">
+                  <button
+                    type="submit"
+                    disabled={createMutation.isPending}
+                    className="flex-1 py-3.5 bg-cyan-600 hover:bg-cyan-700 dark:bg-gradient-to-r dark:from-cyan-600 dark:to-teal-500 text-white font-black rounded-2xl text-sm transition shadow-md dark:shadow-cyan-600/30"
+                  >
+                    {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ وإدراج المصروف'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(false)}
+                    className="px-6 py-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl text-sm transition border border-slate-200 dark:border-slate-700"
+                  >
+                    إلغاء
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Modal */}
+        {editingTx && (
+          <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-5 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
+              <h3 className="font-black text-xl text-slate-900 dark:text-white">تعديل مصروف اليوم</h3>
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">المبلغ (ر.س) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={editAmount}
+                    onChange={(e) => setEditAmount(e.target.value)}
+                    className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-950 text-sm font-black text-cyan-700 dark:text-cyan-400 font-mono-num text-base"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">التفاصيل *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">رقم السند اليدوي</label>
+                  <input
+                    type="text"
+                    value={editVoucher}
+                    onChange={(e) => setEditVoucher(e.target.value)}
+                    className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white font-mono-num"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={updateMutation.isPending}
+                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-black rounded-2xl text-sm transition shadow-md dark:shadow-blue-600/30"
+                  >
+                    حفظ التعديلات
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditingTx(null)}
+                    className="px-5 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl text-sm transition border border-slate-200 dark:border-slate-700"
+                  >
+                    إلغاء
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}
