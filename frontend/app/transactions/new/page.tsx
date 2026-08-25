@@ -15,6 +15,8 @@ export default function NewTransactionPage() {
   const [beneficiaryId, setBeneficiaryId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [projectId, setProjectId] = useState('');
+  const [paymentMethodId, setPaymentMethodId] = useState('');
+  const [paymentReference, setPaymentReference] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -50,6 +52,11 @@ export default function NewTransactionPage() {
     queryFn: async () => (await api.get('/projects', { params: { activeOnly: true } })).data.data,
   });
 
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['payment-methods'],
+    queryFn: async () => (await api.get('/payment-methods')).data.data,
+  });
+
   const { data: systemSettings = [] } = useQuery({
     queryKey: ['system-settings'],
     queryFn: async () => (await api.get('/system-settings')).data.data,
@@ -57,6 +64,7 @@ export default function NewTransactionPage() {
 
   const projectRequirementSetting = systemSettings.find((s: any) => s.key === 'expenses.project_requirement_mode');
   const isProjectRequired = projectRequirementSetting?.value === 'REQUIRED_ON_CREATE';
+  const selectedPaymentMethod = paymentMethods.find((pm: any) => pm.id.toString() === paymentMethodId);
 
   // Create Transaction Mutation
   const createMutation = useMutation({
@@ -68,7 +76,7 @@ export default function NewTransactionPage() {
       queryClient.invalidateQueries({ queryKey: ['today-overview'] });
       queryClient.invalidateQueries({ queryKey: ['today-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
-      router.push('/');
+      router.push('/dashboard');
     },
     onError: (err: any) => {
       setErrorMessage(err.response?.data?.message || 'تعذر إضافة المصروف. تحقق من البيانات المدخلة');
@@ -120,6 +128,16 @@ export default function NewTransactionPage() {
       return;
     }
 
+    if (!paymentMethodId) {
+      setErrorMessage('يرجى تحديد طريقة الدفع: كاش أو بنك');
+      return;
+    }
+
+    if (selectedPaymentMethod?.requiresReference && !paymentReference.trim()) {
+      setErrorMessage('يرجى إدخال مرجع الدفع أو رقم التحويل لطريقة الدفع المحددة');
+      return;
+    }
+
     if (!description.trim()) {
       setErrorMessage('تفاصيل المصروف مطلوبة');
       return;
@@ -131,6 +149,8 @@ export default function NewTransactionPage() {
       beneficiaryName: isCustomBeneficiary ? customBeneficiaryName.trim() : null,
       categoryId: parseInt(categoryId, 10),
       projectId: projectId ? parseInt(projectId, 10) : null,
+      paymentMethodId: parseInt(paymentMethodId, 10),
+      paymentReference: paymentReference.trim() || null,
       amount: parseFloat(amount),
       description: description.trim(),
       invoiceNumber: invoiceNumber.trim() || null,
@@ -272,6 +292,25 @@ export default function NewTransactionPage() {
             </div>
 
             <div>
+              <label className="form-label">طريقة الدفع *</label>
+              <select
+                required
+                value={paymentMethodId}
+                onChange={(e) => {
+                  setPaymentMethodId(e.target.value);
+                  setPaymentReference('');
+                }}
+              >
+                <option value="">اختر طريقة الدفع...</option>
+                {paymentMethods.map((pm: any) => (
+                  <option key={pm.id} value={pm.id}>
+                    {pm.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
               <label className="form-label">رقم الفاتورة (إن وجدت)</label>
               <input
                 type="text"
@@ -280,6 +319,19 @@ export default function NewTransactionPage() {
                 placeholder="مثال: INV-9912"
               />
             </div>
+
+            {selectedPaymentMethod?.requiresReference && (
+              <div>
+                <label className="form-label">مرجع الدفع / رقم التحويل *</label>
+                <input
+                  type="text"
+                  required
+                  value={paymentReference}
+                  onChange={(e) => setPaymentReference(e.target.value)}
+                  placeholder="مثال: رقم الحوالة أو العملية البنكية"
+                />
+              </div>
+            )}
 
             <div className="md:col-span-2">
               <label className="form-label">التفاصيل / بيان المصروف *</label>
@@ -298,7 +350,7 @@ export default function NewTransactionPage() {
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="أي ملاحظات إضافية..."
+                placeholder="أي توضيح يساعد المحاسب عند وجود أمر مبهم أو استثناء..."
               />
             </div>
           </div>

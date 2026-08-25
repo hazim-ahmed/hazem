@@ -40,6 +40,7 @@ describe('Streamlined Daily Expenses System Integration Test Suite', () => {
         manualVoucherNumber: '101',
         beneficiaryId: 1,
         categoryId: 1,
+        paymentMethodId: 1,
         amount: 250.00,
         description: 'شراء مواد اختبار عامة',
       });
@@ -105,6 +106,7 @@ describe('Streamlined Daily Expenses System Integration Test Suite', () => {
         beneficiaryId: 1,
         categoryId: 1,
         projectId: testProjectId,
+        paymentMethodId: 1,
         amount: 150.00,
         description: 'اختبار مشروع متوقف',
       });

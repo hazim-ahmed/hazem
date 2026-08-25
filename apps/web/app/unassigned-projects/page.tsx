@@ -83,45 +83,45 @@ export default function UnassignedProjectsPage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-              <Unlink className="w-6 h-6 text-rose-600" />
+            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+              <Unlink className="w-6 h-6 text-rose-500" />
               <span>السندات غير المرتبطة بالمشاريع</span>
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               إدارة وربط سندات الصرف التي تمت إضافتها بدون مشروع، مع إمكانية الربط الجماعي
             </p>
           </div>
         </div>
 
         {message && (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-semibold flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+          <div className="p-4 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 rounded-xl text-sm font-semibold flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>{message}</span>
           </div>
         )}
 
         {errorMessage && (
-          <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-sm font-semibold flex items-center gap-3">
+          <div className="p-4 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 rounded-xl text-sm font-semibold flex items-center gap-3">
             <AlertCircle className="w-5 h-5 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {/* Bulk Assignment Tool Bar */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-            <FolderPlus className="w-4 h-4 text-emerald-600" />
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl space-y-4">
+          <h3 className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
+            <FolderPlus className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
             <span>أداة الربط الجماعي بمشروع واحد</span>
           </h3>
 
           <form onSubmit={handleBulkAssign} className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-slate-700 mb-1">اختر المشروع المستهدف *</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">اختر المشروع المستهدف *</label>
               <select
                 required
                 value={targetProjectId}
                 onChange={(e) => setTargetProjectId(e.target.value)}
-                className="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 text-sm font-semibold text-slate-800"
+                className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-950 text-sm font-semibold text-slate-800 dark:text-white focus:ring-2 focus:ring-cyan-500 outline-none"
               >
                 <option value="">اختر المشروع...</option>
                 {projects.map((p: any) => (
@@ -133,19 +133,19 @@ export default function UnassignedProjectsPage() {
             </div>
 
             <div className="flex-1 min-w-[250px]">
-              <label className="block text-xs font-bold text-slate-700 mb-1">سبب الربط التوثيقي</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">سبب الربط التوثيقي</label>
               <input
                 type="text"
                 value={assignReason}
                 onChange={(e) => setAssignReason(e.target.value)}
-                className="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 text-sm text-slate-800"
+                className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-950 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-cyan-500 outline-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={bulkAssignMutation.isPending || selectedTxIds.length === 0}
-              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-emerald-600/20 text-sm transition"
+              className="bg-cyan-600 hover:bg-cyan-700 dark:bg-gradient-to-r dark:from-cyan-600 dark:to-blue-600 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-cyan-600/20 text-sm transition"
             >
               {bulkAssignMutation.isPending ? 'جاري الربط...' : `حفظ ربط (${selectedTxIds.length}) عملية`}
             </button>
@@ -153,17 +153,17 @@ export default function UnassignedProjectsPage() {
         </div>
 
         {/* Transactions List Table */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-right border-collapse text-sm">
               <thead>
-                <tr className="bg-slate-100/70 border-b border-slate-200 text-xs font-bold text-slate-600">
+                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                   <th className="p-4 w-12 text-center">
                     <input
                       type="checkbox"
                       checked={transactions.length > 0 && selectedTxIds.length === transactions.length}
                       onChange={toggleSelectAll}
-                      className="rounded text-emerald-600"
+                      className="rounded text-cyan-600"
                     />
                   </th>
                   <th className="p-4">رقم السند اليدوي</th>
@@ -176,7 +176,7 @@ export default function UnassignedProjectsPage() {
                   <th className="p-4">اليومية</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {transactions.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="p-12 text-center text-slate-400 font-bold">
@@ -187,25 +187,25 @@ export default function UnassignedProjectsPage() {
                   transactions.map((tx: any) => {
                     const isSelected = selectedTxIds.includes(tx.id);
                     return (
-                      <tr key={tx.id} className={`hover:bg-slate-50 transition ${isSelected ? 'bg-emerald-50/50' : ''}`}>
+                      <tr key={tx.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${isSelected ? 'bg-cyan-50/50 dark:bg-cyan-950/30' : ''}`}>
                         <td className="p-4 text-center">
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleSelect(tx.id)}
-                            className="rounded text-emerald-600"
+                            className="rounded text-cyan-600"
                           />
                         </td>
-                        <td className="p-4 font-bold text-slate-800">
+                        <td className="p-4 font-bold text-slate-800 dark:text-slate-100">
                           {tx.manualVoucherNumber ? `${tx.manualVoucherNumber}` : '-'}
                         </td>
-                        <td className="p-4 font-mono text-xs font-bold text-blue-600">{tx.systemReference}</td>
-                        <td className="p-4 text-slate-600">{new Date(tx.voucherDate).toLocaleDateString('ar-SA')}</td>
-                        <td className="p-4 font-semibold text-slate-700">{tx.beneficiary?.name}</td>
-                        <td className="p-4 text-slate-600 max-w-xs truncate">{tx.description}</td>
-                        <td className="p-4 font-extrabold text-emerald-700">{Number(tx.amount).toLocaleString()} ر.س</td>
-                        <td className="p-4 font-medium text-slate-600">{tx.journal?.cashbox?.name || 'الصندوق الرئيسي'}</td>
-                        <td className="p-4 font-bold text-slate-700">{tx.journal?.journalNumber}</td>
+                        <td className="p-4 font-mono text-xs font-bold text-cyan-600 dark:text-cyan-400">{tx.systemReference}</td>
+                        <td className="p-4 text-slate-600 dark:text-slate-400">{new Date(tx.voucherDate).toLocaleDateString('ar-SA')}</td>
+                        <td className="p-4 font-semibold text-slate-700 dark:text-slate-200">{tx.beneficiary?.name}</td>
+                        <td className="p-4 text-slate-600 dark:text-slate-400 max-w-xs truncate">{tx.description}</td>
+                        <td className="p-4 font-extrabold text-cyan-700 dark:text-cyan-400 font-mono-num">{Number(tx.amount).toLocaleString()} ر.س</td>
+                        <td className="p-4 font-medium text-slate-600 dark:text-slate-400">{tx.journal?.cashbox?.name || 'الصندوق الرئيسي'}</td>
+                        <td className="p-4 font-bold text-slate-700 dark:text-slate-200">{tx.journal?.journalNumber}</td>
                       </tr>
                     );
                   })

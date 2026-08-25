@@ -193,7 +193,9 @@ export default function JournalDetailPage() {
                   <th className="p-3">المستفيد</th>
                   <th className="p-3">الوصف والتفاصيل</th>
                   <th className="p-3">المشروع</th>
+                  <th className="p-3">طريقة الدفع</th>
                   <th className="p-3">رقم الفاتورة</th>
+                  <th className="p-3">ملاحظات</th>
                   <th className="p-3">المبلغ</th>
                   <th className="p-3">الحالة</th>
                   <th className="p-3">الإجراءات</th>
@@ -202,7 +204,7 @@ export default function JournalDetailPage() {
               <tbody className="divide-y divide-slate-100">
                 {txs.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="p-8 text-center text-slate-400 font-medium">
+                    <td colSpan={12} className="p-8 text-center text-slate-400 font-medium">
                       لا توجد عمليات سريان مسجلة في هذه اليومية حتى الآن.
                     </td>
                   </tr>
@@ -227,8 +229,17 @@ export default function JournalDetailPage() {
                           </span>
                         )}
                       </td>
+                      <td className="p-3 text-slate-700 text-xs font-bold">
+                        {tx.paymentMethod?.name || '-'}
+                        {tx.paymentReference && (
+                          <span className="block text-[11px] text-slate-500 font-mono mt-1">{tx.paymentReference}</span>
+                        )}
+                      </td>
                       <td className="p-3 text-slate-600 font-mono text-xs">
                         {tx.invoiceNumber || (tx.invoiceStatus === 'PENDING' ? 'معلقة' : '-')}
+                      </td>
+                      <td className="p-3 text-slate-600 text-xs max-w-[180px] truncate" title={tx.notes || ''}>
+                        {tx.notes || '-'}
                       </td>
                       <td className="p-3 font-extrabold text-emerald-700 text-base">
                         {Number(tx.amount).toLocaleString()} ر.س

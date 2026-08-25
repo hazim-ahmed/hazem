@@ -76,105 +76,6 @@ export default function DashboardPage() {
     });
   };
 
-  // Add Expense Modal State
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isCustomBeneficiary, setIsCustomBeneficiary] = useState(false);
-  const [newBeneficiaryName, setNewBeneficiaryName] = useState('');
-  const [newAmount, setNewAmount] = useState('');
-  const [newDescription, setNewDescription] = useState('');
-  const [newBeneficiaryId, setNewBeneficiaryId] = useState('');
-  const [newCategoryId, setNewCategoryId] = useState('');
-  const [newProjectId, setNewProjectId] = useState('');
-  const [newVoucher, setNewVoucher] = useState('');
-  const [newInvoice, setNewInvoice] = useState('');
-  const [addError, setAddError] = useState('');
-
-  // Master data for quick add
-  const { data: beneficiaries = [] } = useQuery({
-    queryKey: ['beneficiaries'],
-    queryFn: async () => (await api.get('/beneficiaries')).data?.data || [],
-    enabled: isAddModalOpen,
-  });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => (await api.get('/expense-categories')).data?.data || [],
-    enabled: isAddModalOpen,
-  });
-
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects', true],
-    queryFn: async () => (await api.get('/projects', { params: { activeOnly: true } })).data?.data || [],
-    enabled: isAddModalOpen,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (payload: any) => {
-      const res = await api.post('/today/transactions', payload);
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['today-overview'] });
-      queryClient.invalidateQueries({ queryKey: ['today-transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
-      setIsAddModalOpen(false);
-      setNewAmount('');
-      setNewDescription('');
-      setNewBeneficiaryId('');
-      setNewBeneficiaryName('');
-      setIsCustomBeneficiary(false);
-      setNewCategoryId('');
-      setNewProjectId('');
-      setNewVoucher('');
-      setNewInvoice('');
-      setAddError('');
-    },
-    onError: (err: any) => {
-      setAddError(err.response?.data?.message || 'تعذر إضافة المصروف');
-    },
-  });
-
-  const handleAddSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setAddError('');
-
-    if (isCustomBeneficiary) {
-      if (!newBeneficiaryName.trim()) {
-        setAddError('يرجى إدخال اسم المستفيد');
-        return;
-      }
-    } else {
-      if (!newBeneficiaryId) {
-        setAddError('يرجى اختيار المستفيد من القائمة');
-        return;
-      }
-    }
-
-    if (!newCategoryId) {
-      setAddError('يرجى اختيار نوع المصروف');
-      return;
-    }
-    if (!newAmount || parseFloat(newAmount) <= 0) {
-      setAddError('يرجى إدخال مبلغ أكبر من صفر');
-      return;
-    }
-    if (!newDescription.trim()) {
-      setAddError('يرجى إدخال البيان / التفاصيل');
-      return;
-    }
-
-    createMutation.mutate({
-      beneficiaryId: isCustomBeneficiary ? null : parseInt(newBeneficiaryId, 10),
-      beneficiaryName: isCustomBeneficiary ? newBeneficiaryName.trim() : null,
-      categoryId: parseInt(newCategoryId, 10),
-      projectId: newProjectId ? parseInt(newProjectId, 10) : null,
-      amount: parseFloat(newAmount),
-      description: newDescription.trim(),
-      manualVoucherNumber: newVoucher.trim() || null,
-      invoiceNumber: newInvoice.trim() || null,
-    });
-  };
-
   return (
     <DashboardLayout>
       <div className="space-y-5 sm:space-y-6 pb-12">
@@ -207,19 +108,12 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
-                <button
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-xs sm:text-sm"
-                >
-                  <Plus className="w-4 sm:w-5 h-4 sm:h-5 stroke-[3]" />
-                  <span>إضافة مصروف سريع</span>
-                </button>
-
                 <Link
                   href="/transactions/new"
-                  className="flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-white font-black px-4 py-3 sm:py-3.5 rounded-2xl border border-white/30 dark:border-slate-700/80 transition-all hover:scale-[1.02] active:scale-[0.98] text-xs sm:text-sm backdrop-blur-md"
+                  className="flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-6 py-3 sm:py-3.5 rounded-2xl shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-xs sm:text-sm"
                 >
-                  <span>النموذج الكامل</span>
+                  <Plus className="w-4 sm:w-5 h-4 sm:h-5 stroke-[3]" />
+                  <span>تسجيل مصروف جديد</span>
                 </Link>
               </div>
             </div>
@@ -281,7 +175,9 @@ export default function DashboardPage() {
                   <th className="p-4">المستفيد</th>
                   <th className="p-4">التفاصيل والبيان</th>
                   <th className="p-4">المشروع</th>
+                  <th className="p-4">طريقة الدفع</th>
                   <th className="p-4">رقم الفاتورة</th>
+                  <th className="p-4">ملاحظات</th>
                   <th className="p-4">المبلغ (ر.س)</th>
                   <th className="p-4">وقت التسجيل</th>
                   <th className="p-4 text-center">الإجراءات</th>
@@ -290,7 +186,7 @@ export default function DashboardPage() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-12 text-center text-slate-500 dark:text-slate-300 font-bold">
+                    <td colSpan={10} className="p-12 text-center text-slate-500 dark:text-slate-300 font-bold">
                       لم يتم إدراج أي مصروفات في يومية اليوم حتى الآن. اضغط على "إضافة مصروف سريع" للبدء.
                     </td>
                   </tr>
@@ -309,7 +205,14 @@ export default function DashboardPage() {
                           <span className="text-slate-500 dark:text-slate-400 text-xs font-bold">مصروف عام/نثري</span>
                         )}
                       </td>
+                      <td className="p-4 text-xs font-bold text-slate-700 dark:text-slate-200">
+                        {tx.paymentMethod?.name || '-'}
+                        {tx.paymentReference && (
+                          <span className="block text-[11px] text-slate-500 dark:text-slate-400 font-mono-num mt-1">{tx.paymentReference}</span>
+                        )}
+                      </td>
                       <td className="p-4 font-mono-num text-xs text-slate-600 dark:text-slate-300">{tx.invoiceNumber || '-'}</td>
+                      <td className="p-4 text-xs text-slate-600 dark:text-slate-300 max-w-[180px] truncate" title={tx.notes || ''}>{tx.notes || '-'}</td>
                       <td className="p-4 font-mono-num font-black text-cyan-700 dark:text-cyan-400 text-base">{Number(tx.amount).toLocaleString()} ر.س</td>
                       <td className="p-4 text-xs text-slate-600 dark:text-slate-300 font-mono-num">
                         {new Date(tx.createdAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
@@ -348,164 +251,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick Add Modal */}
-        {isAddModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
-              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
-                <h3 className="font-black text-xl text-slate-900 dark:text-white flex items-center gap-2">
-                  <Plus className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
-                  <span>إضافة مصروف جديد سريع</span>
-                </h3>
-                <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white font-black text-lg">✕</button>
-              </div>
-
-              {addError && <div className="p-3.5 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-2xl font-bold">{addError}</div>}
-
-              <form onSubmit={handleAddSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-1.5">
-                      <label className="block text-xs font-black text-slate-700 dark:text-slate-300">المستفيد *</label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsCustomBeneficiary(!isCustomBeneficiary);
-                          setNewBeneficiaryId('');
-                          setNewBeneficiaryName('');
-                        }}
-                        className="text-[11px] text-cyan-700 dark:text-amber-400 font-extrabold hover:underline"
-                      >
-                        {isCustomBeneficiary ? 'اختر من القائمة' : '+ كتابة اسم جديد'}
-                      </button>
-                    </div>
-
-                    {isCustomBeneficiary ? (
-                      <input
-                        type="text"
-                        required
-                        value={newBeneficiaryName}
-                        onChange={(e) => setNewBeneficiaryName(e.target.value)}
-                        placeholder="اكتب اسم المستفيد/الشركة..."
-                        className="w-full p-3 border border-cyan-300 dark:border-amber-500/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
-                      />
-                    ) : (
-                      <select
-                        required
-                        value={newBeneficiaryId}
-                        onChange={(e) => setNewBeneficiaryId(e.target.value)}
-                        className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
-                      >
-                        <option value="">اختر المستفيد...</option>
-                        {beneficiaries.map((b: any) => (
-                          <option key={b.id} value={b.id}>{b.name}</option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">نوع المصروف (التصنيف) *</label>
-                    <select
-                      required
-                      value={newCategoryId}
-                      onChange={(e) => setNewCategoryId(e.target.value)}
-                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
-                    >
-                      <option value="">اختر نوع المصروف...</option>
-                      {categories.map((c: any) => (
-                        <option key={c.id} value={c.id}>{c.name} ({c.code})</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">المشروع (اختياري)</label>
-                    <select
-                      value={newProjectId}
-                      onChange={(e) => setNewProjectId(e.target.value)}
-                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
-                    >
-                      <option value="">غير مربوط بمشروع (مصروف عام/نثري)</option>
-                      {projects.map((p: any) => (
-                        <option key={p.id} value={p.id}>{p.projectName} ({p.projectCode})</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">المبلغ (ر.س) *</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      value={newAmount}
-                      onChange={(e) => setNewAmount(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-black text-cyan-700 dark:text-cyan-400 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none font-mono-num text-base"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">البيان / التفاصيل *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                    placeholder="بيان تفصيلي بسببي المصروف..."
-                    className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">رقم السند اليدوي (اختياري)</label>
-                    <input
-                      type="text"
-                      value={newVoucher}
-                      onChange={(e) => setNewVoucher(e.target.value)}
-                      placeholder="1001"
-                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none font-mono-num"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">رقم الفاتورة (اختياري)</label>
-                    <input
-                      type="text"
-                      value={newInvoice}
-                      onChange={(e) => setNewInvoice(e.target.value)}
-                      placeholder="INV-9900"
-                      className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-cyan-500 outline-none font-mono-num"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-3">
-                  <button
-                    type="submit"
-                    disabled={createMutation.isPending}
-                    className="flex-1 py-3.5 bg-cyan-600 hover:bg-cyan-700 dark:bg-gradient-to-r dark:from-cyan-600 dark:to-teal-500 text-white font-black rounded-2xl text-sm transition shadow-md dark:shadow-cyan-600/30"
-                  >
-                    {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ وإدراج المصروف'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsAddModalOpen(false)}
-                    className="px-6 py-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl text-sm transition border border-slate-200 dark:border-slate-700"
-                  >
-                    إلغاء
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
 
         {/* Edit Modal */}
         {editingTx && (
