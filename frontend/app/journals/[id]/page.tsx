@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
-import { downloadFile } from '@/lib/download';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -18,9 +17,6 @@ import {
   Building,
   DollarSign,
   Send,
-  FileSpreadsheet,
-  Printer,
-  Loader2,
 } from 'lucide-react';
 
 export default function JournalDetailPage() {
@@ -28,30 +24,6 @@ export default function JournalDetailPage() {
   const journalId = params.id;
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState('');
-  const [isExportingExcel, setIsExportingExcel] = useState(false);
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
-
-  const handleExportExcel = async () => {
-    try {
-      setIsExportingExcel(true);
-      await downloadFile(`/journals/${journalId}/export/excel`, `Journal_${journal?.journalNumber || journalId}.xlsx`);
-    } catch {
-      alert('فشل في تصدير ملف الإكسل');
-    } finally {
-      setIsExportingExcel(false);
-    }
-  };
-
-  const handleExportPDF = async () => {
-    try {
-      setIsExportingPdf(true);
-      await downloadFile(`/journals/${journalId}/export/pdf`, `Journal_${journal?.journalNumber || journalId}.pdf`);
-    } catch {
-      alert('فشل في تصدير ملف الـ PDF');
-    } finally {
-      setIsExportingPdf(false);
-    }
-  };
 
   const { data: journal, isLoading, error } = useQuery({
     queryKey: ['journal', journalId],
@@ -156,44 +128,14 @@ export default function JournalDetailPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={handleExportExcel}
-              disabled={isExportingExcel}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-sm shadow-sm transition disabled:opacity-50"
-              title="تصدير بيانات اليومية إلى ملف Excel"
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/transactions/new?journalId=${journal.id}`}
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow transition"
             >
-              {isExportingExcel ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <FileSpreadsheet className="w-4 h-4" />
-              )}
-              <span>إكسل Excel</span>
-            </button>
-
-            <button
-              onClick={handleExportPDF}
-              disabled={isExportingPdf}
-              className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-sm shadow-sm border border-slate-700 transition disabled:opacity-50"
-              title="تصدير أو طباعة اليومية بصيغة PDF مع خانات التوقيع والاعتماد"
-            >
-              {isExportingPdf ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Printer className="w-4 h-4" />
-              )}
-              <span>طباعة PDF</span>
-            </button>
-
-            {journal.status === 'OPEN' && (
-              <Link
-                href={`/transactions/new?journalId=${journal.id}`}
-                className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow transition"
-              >
-                <Plus className="w-4 h-4" />
-                <span>إضافة سند جديد</span>
-              </Link>
-            )}
+              <Plus className="w-4 h-4" />
+              <span>إضافة سند جديد</span>
+            </Link>
 
             {journal.status === 'OPEN' && (
               <button
@@ -210,7 +152,7 @@ export default function JournalDetailPage() {
               <button
                 onClick={() => closeMutation.mutate()}
                 disabled={closeMutation.isPending}
-                className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow transition"
+                className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow transition"
               >
                 <Lock className="w-4 h-4" />
                 <span>إغلاق اليومية</span>
