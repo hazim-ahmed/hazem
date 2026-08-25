@@ -1,3 +1,39 @@
+# 📌 بطاقة تعريف المشروع والمستودعات (جاهزة للنسخ في أي محادثة جديدة)
+
+إذا أردت بدء محادثة جديدة مع الذكاء الاصطناعي، **انسخ النص التالي وضعه في بداية المحادثة**:
+
+```markdown
+### 🏢 سياق المشروع والمستودعات المرتبطة (Project Repositories Context):
+
+هذا المشروع هو **نظام إدارة المصروفات وسندات الصرف** وينقسم إلى 3 مستودعات Git مربوطة بالمجلدات المحلية التالية:
+
+1. 🌐 **مستودع الواجهة الأمامية (Frontend - Vercel)**:
+   - **المجلد المحلي**: `prodaction/note-Expenses-frontend`
+   - **المستودع على GitHub**: `https://github.com/hazim-ahmed/note-Expenses-frontend.git`
+   - **الرابط الحي (Vercel)**: `https://note-expenses-frontend.vercel.app`
+   - **التقنيات**: Next.js 14, Tailwind CSS, TypeScript, React Query.
+
+2. ⚙️ **مستودع الواجهة الخلفية (Backend - Render)**:
+   - **المجلد المحلي**: `prodaction/note-Expenses-backend`
+   - **المستودع على GitHub**: `https://github.com/hazim-ahmed/note-Expenses-backend.git`
+   - **الرابط الحي (Render)**: `https://note-expenses-backend.onrender.com`
+   - **قاعدة البيانات**: PostgreSQL على Render.
+   - **التقنيات**: Node.js, Express, Prisma ORM, ExcelJS, Puppeteer.
+
+3. 📦 **المستودع الرئيسي الشامل (Monorepo - GitHub)**:
+   - **المجلد المحلي**: مجلد المشروع الرئيسي `exoen_man` (يحتوي على `apps/api` و `apps/web` و `backend` و `frontend`)
+   - **المستودع على GitHub**: `https://github.com/hazim-ahmed/hazem.git`
+
+---
+### 🔄 قاعدة المزامنة عند إجراء أي تعديل:
+عند تعديل أي ملف في الفرونت إند أو الباك إند:
+1. يتم نسخ الملفات المتطابقة بين `apps/` و المجلدات الفرعية و `prodaction/`.
+2. يتم عمل `git push` لمستودع الإنتاج المطلوب داخل مجلد `prodaction/` لنشره تلقائياً على Vercel أو Render.
+3. يتم عمل `git push` للمستودع الرئيسي في جذر المشروع `exoen_man`.
+```
+
+---
+
 # 📚 دليل رفع ومزامنة المستودعات والملخص الشامل لجلسة العمل
 **نظام إدارة المصروفات وسندات الصرف (Expense Management System)**
 *التاريخ: 26 أغسطس 2026*
@@ -5,7 +41,7 @@
 ---
 
 ## 📑 الفهرس
-1. [الهيكل العام ومعمارية المستودعات](#1-الهيكل-العام-ومعمارية-المستودعات)
+1. [خريطة المجلدات والمستودعات التفصيلية](#1-خريطة-المجلدات-والمستودعات-التفصيلية)
 2. [بيانات الاستضافة وقواعد البيانات الحية](#2-بيانات-الاستضافة-وقواعد-البيانات-الحية)
 3. [دليل وأوامر رفع ومزامنة المستودعات (Git Workflow)](#3-دليل-وأوامر-رفع-ومزامنة-المستودعات-git-workflow)
 4. [إعدادات وتكوينات منصات الاستضافة (Render & Vercel)](#4-إعدادات-وتكوينات-منصات-الاستضافة-render--vercel)
@@ -14,32 +50,17 @@
 
 ---
 
-## 1. الهيكل العام ومعمارية المستودعات
+## 1. خريطة المجلدات والمستودعات التفصيلية
 
-ينقسم المشروع إلى **3 مستودعات Git رئيسية** لتسهيل النشر المنفصل والآمن لكل من الواجهة الأمامية والواجهة الخلفية:
+| المجلد المحلي على جهازك | المستودع على GitHub | منصة الاستضافة | وظيفة المجلد |
+| :--- | :--- | :--- | :--- |
+| **`prodaction/note-Expenses-frontend`** | `https://github.com/hazim-ahmed/note-Expenses-frontend.git` | **Vercel** (نشر تلقائي للفرونت إند) | كود الواجهة الأمامية المنفصل المخصص للإنتاج |
+| **`prodaction/note-Expenses-backend`** | `https://github.com/hazim-ahmed/note-Expenses-backend.git` | **Render** (نشر تلقائي للباك إند) | كود الواجهة الخلفية المنفصل المخصص للإنتاج |
+| **`exoen_man` (المجلد الرئيسي بالكامل)** | `https://github.com/hazim-ahmed/hazem.git` | **GitHub Monorepo** | المستودع الشامل الذي يحتوي على جميع التطبيقات والمجلدات |
 
-```
-exoen_man (المجلد الرئيسي)
-│
-├── apps/
-│   ├── api/                     <-- كود الباك إند داخل الـ Monorepo
-│   └── web/                     <-- كود الفرونت إند داخل الـ Monorepo
-│
-├── backend/                     <-- نسخة الباك إند المتزامنة
-├── frontend/                    <-- نسخة الفرونت إند المتزامنة
-│
-└── prodaction/                  <-- المجلدات المرتبطة بمستودعات الإنتاج المنفصلة
-    ├── note-Expenses-frontend/  <-- مربوط بمستودع الفرونت إند على GitHub (متصل بـ Vercel)
-    └── note-Expenses-backend/   <-- مربوط بمستودع الباك إند على GitHub (متصل بـ Render)
-```
-
-### روابط المستودعات على GitHub:
-1. **المستودع الرئيسي الشامل (Monorepo)**:
-   `https://github.com/hazim-ahmed/hazem.git`
-2. **مستودع الفرونت إند المستقل (Frontend Repo)**:
-   `https://github.com/hazim-ahmed/note-Expenses-frontend.git`
-3. **مستودع الباك إند المستقل (Backend Repo)**:
-   `https://github.com/hazim-ahmed/note-Expenses-backend.git`
+### المجلدات الداخلية التابعة للمستودع الرئيسي (`hazem`):
+- `apps/web/` و `frontend/`: نسخ كود الفرونت إند داخل المستودع الشامل.
+- `apps/api/` و `backend/`: نسخ كود الباك إند داخل المستودع الشامل.
 
 ---
 
