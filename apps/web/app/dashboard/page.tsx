@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
+import { downloadFile } from '@/lib/download';
 import Link from 'next/link';
-import { Plus, Calendar, DollarSign, ListOrdered, Lock, Unlock, Edit, Trash2 } from 'lucide-react';
+import { Plus, Calendar, DollarSign, ListOrdered, Lock, Unlock, Edit, Trash2, FileSpreadsheet, Printer, Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const queryClient = useQueryClient();
@@ -13,6 +14,34 @@ export default function DashboardPage() {
   const [editAmount, setEditAmount] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editVoucher, setEditVoucher] = useState('');
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  const handleExportTodayExcel = async () => {
+    if (!todaySummary?.journalId && !todaySummary?.id) return;
+    const jId = todaySummary.journalId || todaySummary.id;
+    try {
+      setIsExportingExcel(true);
+      await downloadFile(`/journals/${jId}/export/excel`, `Daily_Journal_${todaySummary.journalNumber || 'Today'}.xlsx`);
+    } catch (err) {
+      alert('فشل في تصدير ملف الإكسل');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
+  const handleExportTodayPDF = async () => {
+    if (!todaySummary?.journalId && !todaySummary?.id) return;
+    const jId = todaySummary.journalId || todaySummary.id;
+    try {
+      setIsExportingPdf(true);
+      await downloadFile(`/journals/${jId}/export/pdf`, `Daily_Journal_${todaySummary.journalNumber || 'Today'}.pdf`);
+    } catch (err) {
+      alert('فشل في تصدير أو طباعة ملف الـ PDF');
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
   // Fetch today's summary & auto journal status
   const { data: todaySummary, isLoading: summaryLoading } = useQuery({
@@ -162,9 +191,32 @@ export default function DashboardPage() {
               <h3 className="font-black text-xl text-slate-900 dark:text-white tracking-tight">جدول مصروفات وسندات اليوم الحية</h3>
               <p className="text-xs font-bold text-slate-500 dark:text-slate-200 mt-1">سجل مقيد لكافة السندات المالية الصادرة اليوم</p>
             </div>
-            <span className="text-xs font-black bg-cyan-50 text-cyan-800 border border-cyan-200 dark:bg-slate-900 dark:text-cyan-400 dark:border-cyan-500/30 px-4 py-1.5 rounded-full font-mono-num">
-              سجل اليومية: {todaySummary?.journalNumber || '...'}
-            </span>
+            
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                onClick={handleExportTodayExcel}
+                disabled={isExportingExcel || !todaySummary}
+                className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 rounded-xl text-xs border border-emerald-200 dark:border-emerald-800/60 transition disabled:opacity-50"
+                title="تصدير يومية اليوم الحالية إلى ملف Excel"
+              >
+                {isExportingExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileSpreadsheet className="w-3.5 h-3.5" />}
+                <span>تصدير Excel</span>
+              </button>
+
+              <button
+                onClick={handleExportTodayPDF}
+                disabled={isExportingPdf || !todaySummary}
+                className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs border border-slate-700 transition disabled:opacity-50"
+                title="تصدير وطباعة يومية اليوم كملف PDF مع خانات التوقيع"
+              >
+                {isExportingPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
+                <span>طباعة PDF</span>
+              </button>
+
+              <span className="text-xs font-black bg-cyan-50 text-cyan-800 border border-cyan-200 dark:bg-slate-900 dark:text-cyan-400 dark:border-cyan-500/30 px-3.5 py-1.5 rounded-xl font-mono-num">
+                سجل اليومية: {todaySummary?.journalNumber || '...'}
+              </span>
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80">
