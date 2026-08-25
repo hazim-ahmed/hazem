@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
-import { Unlink, FolderPlus, CheckCircle, AlertCircle } from 'lucide-react';
+import { downloadFile } from '@/lib/download';
+import { Unlink, FolderPlus, CheckCircle, AlertCircle, FileSpreadsheet, Printer, Loader2 } from 'lucide-react';
 
 export default function UnassignedProjectsPage() {
   const queryClient = useQueryClient();
@@ -13,6 +14,30 @@ export default function UnassignedProjectsPage() {
   const [assignReason, setAssignReason] = useState('تم ربط السندات بالمشروع بعد المراجعة المحاسبية');
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      await downloadFile('/reports/unassigned-project-transactions/export/excel', 'Unassigned_Transactions_Report.xlsx');
+    } catch {
+      alert('فشل تصدير ملف الإكسل');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      setIsExportingPdf(true);
+      await downloadFile('/reports/unassigned-project-transactions/export/pdf', 'Unassigned_Transactions_Report.pdf');
+    } catch {
+      alert('فشل تصدير ملف الـ PDF');
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ['unassigned-txs'],
@@ -90,6 +115,28 @@ export default function UnassignedProjectsPage() {
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               إدارة وربط سندات الصرف التي تمت إضافتها بدون مشروع، مع إمكانية الربط الجماعي
             </p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleExportExcel}
+              disabled={isExportingExcel}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-sm transition disabled:opacity-50"
+              title="تصدير السندات غير المربوطة إلى Excel"
+            >
+              {isExportingExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileSpreadsheet className="w-3.5 h-3.5" />}
+              <span>تصدير Excel</span>
+            </button>
+
+            <button
+              onClick={handleExportPDF}
+              disabled={isExportingPdf}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs border border-slate-700 transition disabled:opacity-50"
+              title="طباعة وتصدير PDF مع خانات التوقيع"
+            >
+              {isExportingPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
+              <span>طباعة PDF</span>
+            </button>
           </div>
         </div>
 

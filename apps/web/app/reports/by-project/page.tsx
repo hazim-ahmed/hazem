@@ -4,10 +4,37 @@ import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
-import { Building2, Folder, DollarSign, ListOrdered } from 'lucide-react';
+import { downloadFile } from '@/lib/download';
+import { Building2, Folder, DollarSign, ListOrdered, FileSpreadsheet, Printer, Loader2 } from 'lucide-react';
 
 export default function ExpensesByProjectReportPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      const query = selectedProjectId ? `?projectId=${selectedProjectId}` : '';
+      await downloadFile(`/reports/by-project/export/excel${query}`, 'Expenses_By_Project.xlsx');
+    } catch {
+      alert('فشل تصدير ملف الإكسل');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      setIsExportingPdf(true);
+      const query = selectedProjectId ? `?projectId=${selectedProjectId}` : '';
+      await downloadFile(`/reports/by-project/export/pdf${query}`, 'Expenses_By_Project.pdf');
+    } catch {
+      alert('فشل تصدير ملف الـ PDF');
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
@@ -30,12 +57,36 @@ export default function ExpensesByProjectReportPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
-            <span>تقرير المصروفات حسب المشروع</span>
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">عرض ملخص وتفاصيل التكاليف المنصرفة لكل مشروع مقاولات/عقارات</p>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+              <Building2 className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+              <span>تقرير المصروفات حسب المشروع</span>
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">عرض ملخص وتفاصيل التكاليف المنصرفة لكل مشروع مقاولات/عقارات</p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleExportExcel}
+              disabled={isExportingExcel}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-sm transition disabled:opacity-50"
+              title="تصدير التقرير إلى Excel"
+            >
+              {isExportingExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileSpreadsheet className="w-3.5 h-3.5" />}
+              <span>تصدير Excel</span>
+            </button>
+
+            <button
+              onClick={handleExportPDF}
+              disabled={isExportingPdf}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs border border-slate-700 transition disabled:opacity-50"
+              title="طباعة وتصدير PDF مع خانات التوقيع"
+            >
+              {isExportingPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
+              <span>طباعة PDF</span>
+            </button>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-xl flex flex-wrap items-center justify-between gap-4">
