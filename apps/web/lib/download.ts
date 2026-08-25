@@ -42,21 +42,24 @@ export function exportClientExcel(
   rows: (string | number)[][],
   filename: string
 ) {
-  // إنشاء محتوى CSV مع UTF-8 BOM لضمان فتح اللغة العربية بسلاسة في Excel
+  // UTF-8 BOM (\uFEFF) لضمان توافق اللغة العربية 100% في برامج Excel
   const BOM = '\uFEFF';
-  const csvContent = [
-    `"${title}"`,
-    headers.map((h) => `"${h.replace(/"/g, '""')}"`).join(','),
+  const csvRows = [
+    `"${title.replace(/"/g, '""')}"`,
+    '',
+    headers.map((h) => `"${String(h).replace(/"/g, '""')}"`).join(','),
     ...rows.map((row) =>
       row.map((val) => `"${String(val ?? '').replace(/"/g, '""')}"`).join(',')
     ),
-  ].join('\r\n');
+  ];
 
+  const csvContent = csvRows.join('\r\n');
   const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
   const downloadUrl = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = downloadUrl;
-  link.download = filename.endsWith('.csv') || filename.endsWith('.xlsx') ? filename.replace('.xlsx', '.csv') : `${filename}.csv`;
+  const cleanFilename = filename.endsWith('.csv') ? filename : `${filename.replace(/\.xlsx$/i, '')}.csv`;
+  link.download = cleanFilename;
   document.body.appendChild(link);
   link.click();
   link.remove();

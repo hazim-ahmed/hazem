@@ -149,4 +149,32 @@ html.dark ::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* Print Optimization System for Official Accounting Reports */
+@media print {
+  aside, nav, button, .no-print, [role="navigation"] {
+    display: none !important;
+  }
+  body, main {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .table-container, table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  th, td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+    color: #000000 !important;
+  }
+  .signatures-section {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 40px !important;
+    page-break-inside: avoid !important;
+  }
+}
+
 
