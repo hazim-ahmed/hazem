@@ -61,8 +61,12 @@ export default function Sidebar({ isMobileOpen = false, onCloseMobile }: Sidebar
       <div className="p-5 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-transparent">
         <div className="flex items-center gap-3.5">
           <div className="relative">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 via-teal-400 to-blue-600 flex items-center justify-center font-black text-slate-950 text-lg shadow-lg shadow-cyan-500/30 border border-cyan-300/40">
-              ص
+            <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center p-1.5 shadow-lg shadow-cyan-500/20 border border-cyan-300/40 dark:border-cyan-500/30 overflow-hidden">
+              <img
+                src="/logo-only.png"
+                alt="شعار النظام"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-cyan-400 border-2 border-white dark:border-slate-950 shadow-sm" title="النظام نشط" />
           </div>

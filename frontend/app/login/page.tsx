@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // If user is already authenticated, redirect to dashboard
     const token = localStorage.getItem('accessToken');
     if (token) {
       router.replace('/dashboard');
@@ -30,6 +31,7 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', { username, password });
       const { tokens, user } = res.data.data;
+
       setAuthLogin(tokens.accessToken, tokens.refreshToken, user);
     } catch (err: any) {
       if (!err.response) {
@@ -51,8 +53,12 @@ export default function LoginPage() {
     >
       <div className="w-full max-w-md bg-[#0b1329]/90 backdrop-blur-xl border border-cyan-500/30 p-8 rounded-3xl shadow-2xl shadow-cyan-950/50 space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex p-3 bg-cyan-500/10 rounded-2xl text-cyan-400 border border-cyan-500/20 mb-2">
-            <Wallet className="w-8 h-8" />
+          <div className="inline-flex p-3 bg-white/5 dark:bg-slate-900/80 rounded-3xl border border-cyan-500/30 shadow-xl shadow-cyan-500/10 mb-2 backdrop-blur-md">
+            <img
+              src="/logo-only.png"
+              alt="شعار النظام"
+              className="w-16 h-16 object-contain drop-shadow-md"
+            />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-white">نظام إدارة المصروفات وسندات الصرف</h1>
           <p className="text-xs text-zinc-400 font-medium">سجّل دخولك للوصول إلى لوحة اليومية والمصروفات</p>

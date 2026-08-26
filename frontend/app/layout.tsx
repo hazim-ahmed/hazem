@@ -5,6 +5,10 @@ import Providers from '@/lib/providers';
 export const metadata = {
   title: 'نظام إدارة المصروفات اليومية وسندات الصرف',
   description: 'لوحة تحكم إدارية ومالية لإدارة اليومية وسندات الصرف ومتابعة ربط المشاريع',
+  icons: {
+    icon: '/logo-only.png',
+    apple: '/logo-only.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
