@@ -27,8 +27,8 @@ export default function Header({ onToggleMobileMenu }: HeaderProps) {
           </button>
         )}
 
-        <div className="flex items-center gap-2.5 bg-cyan-50 dark:bg-cyan-950/60 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/30 px-3 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-black shadow-inner">
-          <Activity className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 animate-pulse shrink-0" />
+        <div className="flex items-center gap-2.5 bg-cyan-50 dark:bg-cyan-950/60 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/30 px-3 sm:px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-black shadow-inner">
+          <img src="/logo-only.png" alt="Logo" className="w-5 h-5 object-contain shrink-0 drop-shadow-sm" />
           <span className="truncate max-w-[180px] sm:max-w-none">نظام اليوميات وسندات الصرف الحية Pro</span>
         </div>
       </div>

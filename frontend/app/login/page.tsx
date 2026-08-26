@@ -52,12 +52,12 @@ export default function LoginPage() {
       className="min-h-screen bg-[#070d19] text-white flex items-center justify-center p-4 selection:bg-cyan-500 selection:text-slate-950"
     >
       <div className="w-full max-w-md bg-[#0b1329]/90 backdrop-blur-xl border border-cyan-500/30 p-8 rounded-3xl shadow-2xl shadow-cyan-950/50 space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex p-3 bg-white/5 dark:bg-slate-900/80 rounded-3xl border border-cyan-500/30 shadow-xl shadow-cyan-500/10 mb-2 backdrop-blur-md">
+        <div className="text-center space-y-3">
+          <div className="inline-flex p-3 bg-white/10 dark:bg-slate-900/90 rounded-3xl border border-cyan-500/40 shadow-2xl shadow-cyan-500/20 mb-1 backdrop-blur-md">
             <img
               src="/logo-only.png"
               alt="شعار النظام"
-              className="w-16 h-16 object-contain drop-shadow-md"
+              className="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-xl transform scale-105 transition hover:scale-110"
             />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-white">نظام إدارة المصروفات وسندات الصرف</h1>

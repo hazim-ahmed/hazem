@@ -60,15 +60,15 @@ export default function Sidebar({ isMobileOpen = false, onCloseMobile }: Sidebar
       {/* Brand Header */}
       <div className="p-5 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-transparent">
         <div className="flex items-center gap-3.5">
-          <div className="relative">
-            <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center p-1.5 shadow-lg shadow-cyan-500/20 border border-cyan-300/40 dark:border-cyan-500/30 overflow-hidden">
+          <div className="relative shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center p-1 shadow-lg shadow-cyan-500/25 border border-cyan-300/60 dark:border-cyan-500/40 overflow-hidden">
               <img
                 src="/logo-only.png"
                 alt="شعار النظام"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain transform scale-110"
               />
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-cyan-400 border-2 border-white dark:border-slate-950 shadow-sm" title="النظام نشط" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 shadow-sm" title="النظام نشط" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
