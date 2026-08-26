@@ -219,20 +219,20 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80">
-            <table className="w-full text-right border-collapse text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 shadow-xs">
+            <table className="w-full text-right border-collapse text-sm min-w-[1050px]">
               <thead>
                 <tr className="bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">
-                  <th className="p-4">رقم السند اليدوي</th>
-                  <th className="p-4">المستفيد</th>
-                  <th className="p-4">التفاصيل والبيان</th>
-                  <th className="p-4">المشروع</th>
-                  <th className="p-4">طريقة الدفع</th>
-                  <th className="p-4">رقم الفاتورة</th>
-                  <th className="p-4">ملاحظات</th>
-                  <th className="p-4">المبلغ (ر.س)</th>
-                  <th className="p-4">وقت التسجيل</th>
-                  <th className="p-4 text-center">الإجراءات</th>
+                  <th className="p-4 whitespace-nowrap">رقم السند اليدوي</th>
+                  <th className="p-4 whitespace-nowrap">المستفيد</th>
+                  <th className="p-4 min-w-[180px]">التفاصيل والبيان</th>
+                  <th className="p-4 whitespace-nowrap">المشروع</th>
+                  <th className="p-4 whitespace-nowrap">طريقة الدفع</th>
+                  <th className="p-4 whitespace-nowrap">رقم الفاتورة</th>
+                  <th className="p-4 min-w-[140px]">ملاحظات</th>
+                  <th className="p-4 whitespace-nowrap">المبلغ (ر.س)</th>
+                  <th className="p-4 whitespace-nowrap">وقت التسجيل</th>
+                  <th className="p-4 text-center whitespace-nowrap">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -245,31 +245,34 @@ export default function DashboardPage() {
                 ) : (
                   transactions.map((tx: any) => (
                     <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/90 transition-colors">
-                      <td className="p-4 font-mono-num font-black text-amber-600 dark:text-amber-400">{tx.manualVoucherNumber || '-'}</td>
-                      <td className="p-4 font-bold text-slate-900 dark:text-white">{tx.beneficiary?.name}</td>
+                      <td className="p-4 font-mono-num font-black text-amber-600 dark:text-amber-400 whitespace-nowrap">{tx.manualVoucherNumber || '-'}</td>
+                      <td className="p-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">{tx.beneficiary?.name}</td>
                       <td className="p-4 text-slate-700 dark:text-slate-200 font-semibold">{tx.description}</td>
-                      <td className="p-4">
+                      <td className="p-4 whitespace-nowrap">
                         {tx.project ? (
-                          <span className="bg-cyan-50 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 px-3 py-1 rounded-xl text-xs font-bold border border-cyan-200 dark:border-cyan-800/60">
+                          <span className="inline-flex items-center gap-1.5 bg-cyan-50 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 px-3 py-1.5 rounded-xl text-xs font-black border border-cyan-200 dark:border-cyan-800/60 shadow-xs whitespace-nowrap">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shrink-0" />
                             {tx.project.projectName}
                           </span>
                         ) : (
-                          <span className="text-slate-500 dark:text-slate-400 text-xs font-bold">مصروف عام/نثري</span>
+                          <span className="inline-flex items-center text-slate-500 dark:text-slate-400 text-xs font-bold whitespace-nowrap">مصروف عام/نثري</span>
                         )}
                       </td>
-                      <td className="p-4 text-xs font-bold text-slate-700 dark:text-slate-200">
-                        {tx.paymentMethod?.name || '-'}
+                      <td className="p-4 text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                          {tx.paymentMethod?.name || '-'}
+                        </span>
                         {tx.paymentReference && (
                           <span className="block text-[11px] text-slate-500 dark:text-slate-400 font-mono-num mt-1">{tx.paymentReference}</span>
                         )}
                       </td>
-                      <td className="p-4 font-mono-num text-xs text-slate-600 dark:text-slate-300">{tx.invoiceNumber || '-'}</td>
+                      <td className="p-4 font-mono-num text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">{tx.invoiceNumber || '-'}</td>
                       <td className="p-4 text-xs text-slate-600 dark:text-slate-300 max-w-[180px] truncate" title={tx.notes || ''}>{tx.notes || '-'}</td>
-                      <td className="p-4 font-mono-num font-black text-cyan-700 dark:text-cyan-400 text-base">{Number(tx.amount).toLocaleString()} ر.س</td>
-                      <td className="p-4 text-xs text-slate-600 dark:text-slate-300 font-mono-num">
+                      <td className="p-4 font-mono-num font-black text-cyan-700 dark:text-cyan-400 text-base whitespace-nowrap">{Number(tx.amount).toLocaleString()} ر.س</td>
+                      <td className="p-4 text-xs text-slate-600 dark:text-slate-300 font-mono-num whitespace-nowrap">
                         {new Date(tx.createdAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
                       </td>
-                      <td className="p-4 flex items-center justify-center gap-2">
+                      <td className="p-4 flex items-center justify-center gap-2 whitespace-nowrap">
                         <button
                           onClick={() => {
                             setEditingTx(tx);

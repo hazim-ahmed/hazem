@@ -206,20 +206,20 @@ export default function JournalDetailPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right border-collapse text-sm">
+            <table className="w-full text-right border-collapse text-sm min-w-[1050px]">
               <thead>
                 <tr className="bg-slate-100/70 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                  <th className="p-3">#</th>
-                  <th className="p-3">رقم السند اليدوي</th>
-                  <th className="p-3">الرقم المرجعي</th>
-                  <th className="p-3">المستفيد</th>
-                  <th className="p-3">التفاصيل والبيان</th>
-                  <th className="p-3">المشروع</th>
-                  <th className="p-3">طريقة الدفع</th>
-                  <th className="p-3">رقم الفاتورة</th>
-                  <th className="p-3">ملاحظات</th>
-                  <th className="p-3">المبلغ</th>
-                  <th className="p-3">الإجراءات</th>
+                  <th className="p-3 whitespace-nowrap">#</th>
+                  <th className="p-3 whitespace-nowrap">رقم السند اليدوي</th>
+                  <th className="p-3 whitespace-nowrap">الرقم المرجعي</th>
+                  <th className="p-3 whitespace-nowrap">المستفيد</th>
+                  <th className="p-3 min-w-[180px]">التفاصيل والبيان</th>
+                  <th className="p-3 whitespace-nowrap">المشروع</th>
+                  <th className="p-3 whitespace-nowrap">طريقة الدفع</th>
+                  <th className="p-3 whitespace-nowrap">رقم الفاتورة</th>
+                  <th className="p-3 min-w-[140px]">ملاحظات</th>
+                  <th className="p-3 whitespace-nowrap">المبلغ</th>
+                  <th className="p-3 whitespace-nowrap">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -232,40 +232,43 @@ export default function JournalDetailPage() {
                 ) : (
                   txs.map((tx: any, idx: number) => (
                     <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                      <td className="p-3 font-semibold text-slate-500">{idx + 1}</td>
-                      <td className="p-3 font-bold text-slate-800 dark:text-slate-200">
+                      <td className="p-3 font-semibold text-slate-500 whitespace-nowrap">{idx + 1}</td>
+                      <td className="p-3 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                         {tx.manualVoucherNumber || '-'}
                       </td>
-                      <td className="p-3 font-mono text-xs font-bold text-cyan-600 dark:text-cyan-400">{tx.systemReference}</td>
-                      <td className="p-3 font-semibold text-slate-700 dark:text-slate-200">{tx.beneficiary?.name || tx.beneficiaryName}</td>
+                      <td className="p-3 font-mono text-xs font-bold text-cyan-600 dark:text-cyan-400 whitespace-nowrap">{tx.systemReference}</td>
+                      <td className="p-3 font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">{tx.beneficiary?.name || tx.beneficiaryName}</td>
                       <td className="p-3 text-slate-600 dark:text-slate-400 max-w-xs truncate">{tx.description}</td>
-                      <td className="p-3 font-bold">
+                      <td className="p-3 whitespace-nowrap font-bold">
                         {tx.project ? (
-                          <span className="text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/60 px-2.5 py-1 rounded-lg border border-cyan-200 dark:border-cyan-800/60 text-xs">
+                          <span className="inline-flex items-center gap-1.5 text-cyan-800 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/80 px-3 py-1.5 rounded-xl border border-cyan-200 dark:border-cyan-800/60 text-xs font-black shadow-xs whitespace-nowrap">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shrink-0" />
                             {tx.project.projectName}
                           </span>
                         ) : (
-                          <span className="text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800/60 text-xs">
+                          <span className="inline-flex items-center text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800/60 text-xs font-bold whitespace-nowrap">
                             غير مربوط بمشروع
                           </span>
                         )}
                       </td>
-                      <td className="p-3 text-slate-700 dark:text-slate-300 text-xs font-bold">
-                        {tx.paymentMethod?.name || '-'}
+                      <td className="p-3 text-slate-700 dark:text-slate-300 text-xs font-bold whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                          {tx.paymentMethod?.name || '-'}
+                        </span>
                         {tx.paymentReference && (
                           <span className="block text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-1">{tx.paymentReference}</span>
                         )}
                       </td>
-                      <td className="p-3 text-slate-600 dark:text-slate-400 font-mono text-xs">
+                      <td className="p-3 text-slate-600 dark:text-slate-400 font-mono text-xs whitespace-nowrap">
                         {tx.invoiceNumber || '-'}
                       </td>
                       <td className="p-3 text-slate-600 dark:text-slate-400 text-xs max-w-[180px] truncate" title={tx.notes || ''}>
                         {tx.notes || '-'}
                       </td>
-                      <td className="p-3 font-extrabold text-cyan-700 dark:text-cyan-400 text-base font-mono-num">
+                      <td className="p-3 font-extrabold text-cyan-700 dark:text-cyan-400 text-base font-mono-num whitespace-nowrap">
                         {Number(tx.amount).toLocaleString()} ر.س
                       </td>
-                      <td className="p-3">
+                      <td className="p-3 whitespace-nowrap">
                         {!tx.projectId && (
                           <Link
                             href={`/unassigned-projects?txId=${tx.id}`}
