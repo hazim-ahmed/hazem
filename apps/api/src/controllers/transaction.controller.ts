@@ -57,4 +57,30 @@ export class TransactionController {
       next(error);
     }
   }
+
+  static async approve(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const userId = req.user!.id;
+      const userRole = req.user!.roles?.[0] || 'EXPENSE_USER';
+      const { comments } = req.body || {};
+      const result = await TransactionService.approveTransaction(id, userId, userRole, comments);
+      return sendSuccess(res, result, 'تم اعتماد سند الصرف بنجاح');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async reject(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const userId = req.user!.id;
+      const userRole = req.user!.roles?.[0] || 'EXPENSE_USER';
+      const { reason } = req.body || {};
+      const result = await TransactionService.rejectTransaction(id, userId, userRole, reason);
+      return sendSuccess(res, result, 'تم رفض سند الصرف');
+    } catch (error) {
+      next(error);
+    }
+  }
 }

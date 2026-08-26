@@ -354,6 +354,26 @@ export class UserService {
 
   // Roles, Projects, & Cashboxes linkages
   static async updateUserRoles(userId: number, roleIds: number[], currentUserId: number) {
+    const adminRole = await prisma.role.findFirst({ where: { name: 'ADMIN' } });
+    if (adminRole) {
+      const userHasAdmin = await prisma.userRole.findFirst({
+        where: { userId: BigInt(userId), roleId: adminRole.id },
+      });
+      const newRolesIncludeAdmin = roleIds.some((rId) => BigInt(rId) === adminRole.id);
+
+      if (userHasAdmin && !newRolesIncludeAdmin) {
+        const activeAdminsCount = await prisma.userRole.count({
+          where: {
+            roleId: adminRole.id,
+            user: { isActive: true },
+          },
+        });
+        if (activeAdminsCount <= 1) {
+          throw new AppError('لا يمكنك إزالة صلاحية المدير (ADMIN) عن آخر مدير فعّال في النظام لحماية وصول الإدارة', 400, 'LAST_ADMIN_PROTECTION');
+        }
+      }
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.userRole.deleteMany({ where: { userId: BigInt(userId) } });
       await tx.userRole.createMany({
