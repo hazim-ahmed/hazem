@@ -81,6 +81,13 @@ class TransactionCard extends StatelessWidget {
                   color: const Color(0xFFFAF5FF),
                   textColor: const Color(0xFF6B21A8),
                 ),
+              if (tx.createdByName != null && tx.createdByName!.isNotEmpty)
+                _badge(
+                  icon: Icons.account_circle_outlined,
+                  text: 'بواسطة: ${tx.createdByName}',
+                  color: const Color(0xFFF8FAFC),
+                  textColor: const Color(0xFF475569),
+                ),
               _statusBadge(tx.status),
               if (tx.invoiceStatus == 'ATTACHED')
                 _badge(

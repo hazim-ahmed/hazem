@@ -15,6 +15,7 @@ class ExpenseTransactionModel {
   final String? categoryName;
   final String? projectName;
   final String? unitNumber;
+  final String? createdByName;
 
   ExpenseTransactionModel({
     required this.id,
@@ -31,6 +32,7 @@ class ExpenseTransactionModel {
     this.categoryName,
     this.projectName,
     this.unitNumber,
+    this.createdByName,
   });
 
   factory ExpenseTransactionModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class ExpenseTransactionModel {
     final cat = asMap(json['category']);
     final prj = asMap(json['project']);
     final unt = asMap(json['projectUnit']);
+    final creator = asMap(json['creator']);
 
     return ExpenseTransactionModel(
       id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '') ?? 0,
@@ -54,6 +57,7 @@ class ExpenseTransactionModel {
       categoryName: cat['name']?.toString(),
       projectName: prj['projectName']?.toString() ?? prj['name']?.toString(),
       unitNumber: unt['unitNumber']?.toString(),
+      createdByName: creator['fullName']?.toString() ?? creator['username']?.toString(),
     );
   }
 }
