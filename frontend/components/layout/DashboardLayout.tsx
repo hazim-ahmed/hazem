@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setIsCollapsed(saved === 'true');
       }
     } catch {
-      // Ignore localStorage errors in SSR/strict privacy mode
+      // Ignore in SSR
     }
   }, []);
 
@@ -32,8 +32,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
   };
 
+  // Keyboard shortcut Ctrl+B / Cmd+B (matching shadcn standard)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        handleToggleCollapse();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#070d19] text-slate-900 dark:text-white antialiased selection:bg-cyan-500 selection:text-white transition-colors duration-200">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#070d19] text-slate-900 dark:text-white antialiased selection:bg-cyan-500 selection:text-white transition-colors duration-200" dir="rtl">
       <Sidebar
         isMobileOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}

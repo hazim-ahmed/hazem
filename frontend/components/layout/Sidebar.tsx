@@ -16,13 +16,11 @@ import {
   Settings,
   Sparkles,
   User,
-  PanelRightClose,
-  PanelRightOpen,
   ChevronRight,
   ChevronLeft,
 } from 'lucide-react';
 
-const navigationGroups = [
+export const navigationGroups = [
   {
     title: 'الرئيسية والتشغيل',
     items: [
@@ -67,16 +65,22 @@ export default function Sidebar({
   const isAdmin = user?.roles?.includes('ADMIN') ?? false;
 
   const renderContent = (collapsed: boolean) => (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-950 select-none">
-      {/* Brand Header */}
-      <div className={`border-b border-slate-200 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950 transition-all ${
-        collapsed ? 'p-3 flex flex-col items-center gap-3' : 'px-3.5 py-3.5 flex items-center justify-between gap-2'
-      }`}>
-        <div className={`flex items-center ${collapsed ? 'flex-col justify-center' : 'gap-2.5'}`}>
+    <div className="flex flex-col h-full bg-white dark:bg-slate-950 select-none relative">
+      {/* 1. SidebarHeader */}
+      <div
+        className={`border-b border-slate-200 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950 transition-all ${
+          collapsed
+            ? 'p-3 flex flex-col items-center gap-2.5'
+            : 'px-3.5 py-3.5 flex items-center justify-between gap-2'
+        }`}
+      >
+        <div className={`flex items-center ${collapsed ? 'flex-col justify-center' : 'gap-2.5 min-w-0'}`}>
           <div className="relative shrink-0">
-            <div className={`${
-              collapsed ? 'w-11 h-11' : 'w-11 h-11'
-            } rounded-xl bg-white dark:bg-slate-900/90 flex items-center justify-center p-1 shadow-sm border border-slate-200 dark:border-cyan-500/30 overflow-hidden transition-all`}>
+            <div
+              className={`${
+                collapsed ? 'w-11 h-11' : 'w-11 h-11'
+              } rounded-xl bg-white dark:bg-slate-900/90 flex items-center justify-center p-1 shadow-sm border border-slate-200 dark:border-cyan-500/30 overflow-hidden transition-all`}
+            >
               <img
                 src="/logo-only.png"
                 alt="شعار النظام"
@@ -90,30 +94,30 @@ export default function Sidebar({
           </div>
 
           {!collapsed && (
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1">
-                <h1 className="font-black text-sm text-slate-900 dark:text-white tracking-tight whitespace-nowrap">نظام المصروفات</h1>
+                <h1 className="font-black text-sm text-slate-900 dark:text-white tracking-tight whitespace-nowrap">
+                  نظام المصروفات
+                </h1>
                 <Sparkles className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
               </div>
-              <p className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold leading-tight mt-0.5 whitespace-nowrap">سندات الصرف واليومية Pro</p>
+              <p className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold leading-tight mt-0.5 whitespace-nowrap">
+                سندات الصرف واليومية Pro
+              </p>
             </div>
           )}
         </div>
 
-        {/* Collapse Button on Desktop */}
+        {/* Header Toggle Button on Desktop */}
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
             className={`hidden lg:flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-800 transition active:scale-95 shadow-xs shrink-0 ${
               collapsed ? 'w-7 h-7' : 'w-7 h-7'
             }`}
-            title={collapsed ? 'توسيع القائمة الجانبية (Expand)' : 'تصغير القائمة الجانبية (Collapse)'}
+            title={collapsed ? 'توسيع القائمة الجانبية (Ctrl+B)' : 'تصغير القائمة الجانبية (Ctrl+B)'}
           >
-            {collapsed ? (
-              <ChevronLeft className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
+            {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
         )}
 
@@ -129,7 +133,7 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Navigation Menu */}
+      {/* 2. SidebarContent & SidebarGroups */}
       <nav className={`flex-1 overflow-y-auto space-y-4 ${collapsed ? 'p-2' : 'p-3'}`}>
         {navigationGroups.map((group, groupIdx) => {
           const visibleItems = group.items.filter((item) => !item.adminOnly || isAdmin);
@@ -147,7 +151,8 @@ export default function Sidebar({
 
               <div className="space-y-1">
                 {visibleItems.map((item) => {
-                  const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                  const isActive =
+                    pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
                   const Icon = item.icon;
 
                   if (collapsed) {
@@ -165,7 +170,13 @@ export default function Sidebar({
                         {isActive && (
                           <span className="absolute right-0 top-2 bottom-2 w-1 bg-amber-400 rounded-l-full shadow-xs" />
                         )}
-                        <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400'}`} />
+                        <Icon
+                          className={`w-5 h-5 transition-transform group-hover:scale-110 ${
+                            isActive
+                              ? 'text-white'
+                              : 'text-slate-500 dark:text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400'
+                          }`}
+                        />
                       </Link>
                     );
                   }
@@ -184,7 +195,13 @@ export default function Sidebar({
                       {isActive && (
                         <span className="absolute right-0 top-2 bottom-2 w-1 bg-amber-400 rounded-l-full shadow-xs" />
                       )}
-                      <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-300 group-hover:text-cyan-600 dark:group-hover:text-cyan-400'}`} />
+                      <Icon
+                        className={`w-4 h-4 transition-transform group-hover:scale-110 ${
+                          isActive
+                            ? 'text-white'
+                            : 'text-slate-500 dark:text-slate-300 group-hover:text-cyan-600 dark:group-hover:text-cyan-400'
+                        }`}
+                      />
                       <span className="truncate">{item.name}</span>
                     </Link>
                   );
@@ -195,8 +212,12 @@ export default function Sidebar({
         })}
       </nav>
 
-      {/* User Footer Card */}
-      <div className={`border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/60 ${collapsed ? 'p-2 flex justify-center' : 'p-3'}`}>
+      {/* 3. SidebarFooter */}
+      <div
+        className={`border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/60 ${
+          collapsed ? 'p-2 flex justify-center' : 'p-3'
+        }`}
+      >
         {collapsed ? (
           <div
             className="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-slate-800 border border-cyan-300 dark:border-cyan-500/30 flex items-center justify-center text-cyan-700 dark:text-cyan-400 shadow-xs cursor-pointer"
@@ -210,7 +231,9 @@ export default function Sidebar({
               <User className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{user?.fullName || user?.username || 'المستخدم'}</p>
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                {user?.fullName || user?.username || 'المستخدم'}
+              </p>
               <span className="inline-block mt-0.5 px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-800/60">
                 {user?.roles?.[0] || 'CASHIER'}
               </span>
@@ -218,30 +241,37 @@ export default function Sidebar({
           </div>
         )}
       </div>
+
+      {/* 4. SidebarRail (Interactive Edge Handle for Desktop) */}
+      {onToggleCollapse && (
+        <button
+          onClick={onToggleCollapse}
+          className="hidden lg:block absolute left-0 top-0 bottom-0 w-2.5 -translate-x-1/2 group cursor-ew-resize z-40 outline-none"
+          title={collapsed ? 'توسيع القائمة الجانبية (Ctrl+B)' : 'تصغير القائمة الجانبية (Ctrl+B)'}
+        >
+          <div className="w-0.5 h-full mx-auto bg-transparent group-hover:bg-cyan-500/60 dark:group-hover:bg-cyan-400/80 transition-colors" />
+        </button>
+      )}
     </div>
   );
 
   return (
     <>
-      {/* Desktop Permanent Collapsible Sidebar */}
+      {/* Desktop Collapsible Sidebar */}
       <aside
+        data-side="right"
+        data-state={isCollapsed ? 'collapsed' : 'expanded'}
         className={`hidden lg:flex ${
           isCollapsed ? 'w-20' : 'w-64'
-        } bg-white dark:bg-slate-950 text-slate-800 dark:text-white min-h-screen flex-col border-l border-slate-200 dark:border-slate-800/80 shrink-0 shadow-lg dark:shadow-2xl z-30 transition-all duration-300 ease-in-out`}
+        } bg-white dark:bg-slate-950 text-slate-800 dark:text-white min-h-screen flex-col border-l border-slate-200 dark:border-slate-800/80 shrink-0 shadow-lg dark:shadow-2xl z-30 transition-[width] duration-200 ease-linear`}
       >
         {renderContent(isCollapsed)}
       </aside>
 
-      {/* Mobile & Tablet Slide-over Drawer Overlay */}
+      {/* Mobile Drawer Overlay */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden animate-in fade-in duration-200">
-          {/* Backdrop */}
-          <div
-            onClick={onCloseMobile}
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
-          />
-
-          {/* Drawer Panel (Always full-width on mobile) */}
+          <div onClick={onCloseMobile} className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm" />
           <aside className="fixed top-0 bottom-0 right-0 w-72 bg-white dark:bg-slate-950 text-slate-800 dark:text-white z-50 shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800 animate-in slide-in-from-right duration-300">
             {renderContent(false)}
           </aside>
