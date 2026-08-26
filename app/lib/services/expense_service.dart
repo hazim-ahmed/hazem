@@ -9,13 +9,41 @@ class ExpenseService {
   ExpenseService(this.api);
 
   Future<Map<String, dynamic>> fetchTodayData() async {
-    final results = await Future.wait([
-      api.get('/today/journal'),
-      api.get('/today/transactions'),
-    ]);
+    Map<String, dynamic> journal = {};
+    List<dynamic> txListRaw = [];
 
-    final journal = asMap(responseData(results[0]));
-    final txListRaw = asList(responseData(results[1]));
+    try {
+      final overviewRes = await api.get('/today');
+      journal = asMap(responseData(overviewRes));
+    } catch (_) {}
+
+    try {
+      final txRes = await api.get('/today/transactions');
+      txListRaw = asList(responseData(txRes));
+    } catch (_) {}
+
+    // If today's journal has 0 transactions, fallback to fetch from the latest active/closed journal
+    if (txListRaw.isEmpty) {
+      try {
+        final journalsRes = await api.get('/journals');
+        final journalsList = asList(responseData(journalsRes));
+        if (journalsList.isNotEmpty) {
+          final latestJournalId = journalsList.first['id'];
+          if (latestJournalId != null) {
+            final latestJournalRes = await api.get('/journals/$latestJournalId');
+            final latestJournalData = asMap(responseData(latestJournalRes));
+            final pastTx = asList(latestJournalData['transactions']);
+            if (pastTx.isNotEmpty) {
+              txListRaw = pastTx;
+              if (journal.isEmpty || journal['transactionsCount'] == 0) {
+                journal = latestJournalData;
+              }
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
     final transactions = txListRaw.map((e) => ExpenseTransactionModel.fromJson(e)).toList();
 
     await CacheService.saveCachedData('today_data', {

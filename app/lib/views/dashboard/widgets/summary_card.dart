@@ -54,7 +54,8 @@ class SummaryCard extends StatelessWidget {
                         const Icon(Icons.calendar_today_rounded, size: 13, color: Colors.white),
                         const SizedBox(width: 5),
                         Text(
-                          journal?['journalDate']?.toString() ?? AppFormatters.formatDate(DateTime.now()),
+                          journal?['systemDate']?.toString() ??
+                              (journal?['journalDate'] != null ? journal!['journalDate'].toString().split('T').first : AppFormatters.formatDate(DateTime.now())),
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ],
