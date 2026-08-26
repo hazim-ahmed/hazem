@@ -214,7 +214,7 @@ export default function Sidebar({
 
       {/* 3. SidebarFooter */}
       <div
-        className={`border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/60 ${
+        className={`shrink-0 mt-auto border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/60 ${
           collapsed ? 'p-2 flex justify-center' : 'p-3'
         }`}
       >
@@ -257,13 +257,13 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Desktop Collapsible Sidebar */}
+      {/* Desktop Collapsible Fixed Sidebar */}
       <aside
         data-side="right"
         data-state={isCollapsed ? 'collapsed' : 'expanded'}
         className={`hidden lg:flex ${
           isCollapsed ? 'w-20' : 'w-64'
-        } bg-white dark:bg-slate-950 text-slate-800 dark:text-white min-h-screen flex-col border-l border-slate-200 dark:border-slate-800/80 shrink-0 shadow-lg dark:shadow-2xl z-30 transition-[width] duration-200 ease-linear`}
+        } bg-white dark:bg-slate-950 text-slate-800 dark:text-white h-screen sticky top-0 flex-col border-l border-slate-200 dark:border-slate-800/80 shrink-0 shadow-lg dark:shadow-2xl z-30 transition-[width] duration-200 ease-linear overflow-hidden`}
       >
         {renderContent(isCollapsed)}
       </aside>
@@ -272,7 +272,7 @@ export default function Sidebar({
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden animate-in fade-in duration-200">
           <div onClick={onCloseMobile} className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm" />
-          <aside className="fixed top-0 bottom-0 right-0 w-72 bg-white dark:bg-slate-950 text-slate-800 dark:text-white z-50 shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800 animate-in slide-in-from-right duration-300">
+          <aside className="fixed top-0 bottom-0 right-0 w-72 h-full bg-white dark:bg-slate-950 text-slate-800 dark:text-white z-50 shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800 animate-in slide-in-from-right duration-300 overflow-hidden">
             {renderContent(false)}
           </aside>
         </div>
