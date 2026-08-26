@@ -69,33 +69,33 @@ export default function Sidebar({
   const renderContent = (collapsed: boolean) => (
     <div className="flex flex-col h-full bg-white dark:bg-slate-950 select-none">
       {/* Brand Header */}
-      <div className={`border-b border-slate-200 dark:border-slate-800/80 bg-slate-50/60 dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-transparent transition-all ${
-        collapsed ? 'p-3 flex flex-col items-center gap-2.5' : 'p-4 flex items-center justify-between'
+      <div className={`border-b border-slate-200 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950 transition-all ${
+        collapsed ? 'p-3 flex flex-col items-center gap-3' : 'px-3.5 py-3.5 flex items-center justify-between gap-2'
       }`}>
-        <div className={`flex items-center ${collapsed ? 'flex-col justify-center' : 'gap-3 min-w-0'}`}>
+        <div className={`flex items-center ${collapsed ? 'flex-col justify-center' : 'gap-2.5'}`}>
           <div className="relative shrink-0">
             <div className={`${
-              collapsed ? 'w-12 h-12' : 'w-13 h-13 sm:w-14 sm:h-14'
-            } rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center p-1 shadow-md shadow-cyan-500/20 border border-cyan-300/60 dark:border-cyan-500/40 overflow-hidden transition-all`}>
+              collapsed ? 'w-11 h-11' : 'w-11 h-11'
+            } rounded-xl bg-white dark:bg-slate-900/90 flex items-center justify-center p-1 shadow-sm border border-slate-200 dark:border-cyan-500/30 overflow-hidden transition-all`}>
               <img
                 src="/logo-only.png"
                 alt="شعار النظام"
-                className="w-full h-full object-contain transform scale-110"
+                className="w-full h-full object-contain"
               />
             </div>
             <span
-              className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 shadow-xs"
-              title="النظام نشط ومتصل"
+              className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 shadow-xs"
+              title="النظام متصل"
             />
           </div>
 
           {!collapsed && (
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h1 className="font-black text-base text-slate-900 dark:text-white tracking-tight truncate">نظام المصروفات</h1>
-                <Sparkles className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 animate-pulse shrink-0" />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1">
+                <h1 className="font-black text-sm text-slate-900 dark:text-white tracking-tight whitespace-nowrap">نظام المصروفات</h1>
+                <Sparkles className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
               </div>
-              <p className="text-[11px] text-cyan-700 dark:text-cyan-400 font-bold mt-0.5 truncate">سندات الصرف واليومية Pro</p>
+              <p className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold leading-tight mt-0.5 whitespace-nowrap">سندات الصرف واليومية Pro</p>
             </div>
           )}
         </div>
@@ -104,8 +104,8 @@ export default function Sidebar({
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
-            className={`hidden lg:flex items-center justify-center rounded-xl bg-slate-100 hover:bg-cyan-50 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-800 transition active:scale-95 shadow-xs ${
-              collapsed ? 'w-8 h-8' : 'p-1.5'
+            className={`hidden lg:flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-800 transition active:scale-95 shadow-xs shrink-0 ${
+              collapsed ? 'w-7 h-7' : 'w-7 h-7'
             }`}
             title={collapsed ? 'توسيع القائمة الجانبية (Expand)' : 'تصغير القائمة الجانبية (Collapse)'}
           >
