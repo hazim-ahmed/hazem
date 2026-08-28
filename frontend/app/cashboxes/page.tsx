@@ -57,15 +57,15 @@ export default function CashboxesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-              <Wallet className="w-6 h-6 text-emerald-600" />
-              <span>الصناديق المالية (Cashboxes)</span>
+            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+              <Wallet className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+              <span>الصناديق المالية</span>
             </h1>
-            <p className="text-sm text-slate-500 mt-1">صناديق عهد المصروفات اليومية والفروع</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">صناديق عهد المصروفات اليومية والفروع</p>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm transition"
+            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 dark:bg-gradient-to-r dark:from-cyan-600 dark:to-blue-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-cyan-600/20 transition"
           >
             <Plus className="w-4 h-4" />
             <span>إضافة صندوق جديد</span>
@@ -74,65 +74,65 @@ export default function CashboxesPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {cashboxes.map((cb: any) => (
-            <div key={cb.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3 hover:shadow-md transition">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h3 className="font-extrabold text-lg text-slate-800">{cb.name}</h3>
-                <span className="font-mono text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-md">
+            <div key={cb.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl space-y-3 hover:border-cyan-500/50 transition">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                <h3 className="font-extrabold text-lg text-slate-800 dark:text-white">{cb.name}</h3>
+                <span className="font-mono text-xs font-bold text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200 dark:border-cyan-800/60 px-2 py-1 rounded-md">
                   {cb.code}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 font-medium">الفرع: {cb.branchName || 'الرئيسي'}</p>
-              <p className="text-xs text-slate-600 font-medium">أمين الصندوق: {cb.custodian?.fullName || 'غير محدد'}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">الفرع: {cb.branchName || 'الرئيسي'}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">أمين الصندوق: {cb.custodian?.fullName || 'غير محدد'}</p>
             </div>
           ))}
         </div>
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b pb-3">
-              <h3 className="font-extrabold text-lg text-slate-800">إضافة صندوق جديد</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+        <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="font-extrabold text-lg text-slate-800 dark:text-white">إضافة صندوق جديد</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {error && <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-bold">{error}</div>}
+            {error && <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-bold">{error}</div>}
 
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">كود الصندوق *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">كود الصندوق *</label>
                 <input
                   type="text"
                   required
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="CB-01"
-                  className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 dark:text-white focus:ring-2 focus:ring-cyan-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">اسم الصندوق *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">اسم الصندوق *</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="صندوق المصروفات النثرية"
-                  className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 dark:text-white focus:ring-2 focus:ring-cyan-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">الفرع (اختياري)</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">الفرع (اختياري)</label>
                 <input
                   type="text"
                   value={branchName}
                   onChange={(e) => setBranchName(e.target.value)}
                   placeholder="الفرع الرئيسي - الرياض"
-                  className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 dark:text-white focus:ring-2 focus:ring-cyan-500 outline-none"
                 />
               </div>
 
@@ -140,14 +140,14 @@ export default function CashboxesPage() {
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="flex-1 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition"
+                  className="flex-1 bg-cyan-600 hover:bg-cyan-700 dark:bg-gradient-to-r dark:from-cyan-600 dark:to-blue-600 text-white font-bold py-2.5 rounded-xl transition shadow-md shadow-cyan-600/20"
                 >
                   {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ الصندوق'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 border border-slate-300 font-bold text-slate-600 rounded-xl hover:bg-slate-50"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-300 rounded-xl transition"
                 >
                   إلغاء
                 </button>

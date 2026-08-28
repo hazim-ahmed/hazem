@@ -26,6 +26,7 @@ import {
   X,
   Trash2,
   Building2,
+  User,
 } from 'lucide-react';
 
 export default function JournalDetailPage() {
@@ -353,6 +354,12 @@ export default function JournalDetailPage() {
                         {tx.manualVoucherNumber && (
                           <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400 block mt-0.5">
                             يدوي: #{tx.manualVoucherNumber}
+                          </span>
+                        )}
+                        {tx.creator && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1">
+                            <User className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+                            {tx.creator.fullName || tx.creator.username}
                           </span>
                         )}
                       </td>

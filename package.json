@@ -13,6 +13,7 @@
     "db:migrate": "pnpm --filter api db:migrate",
     "db:seed": "pnpm --filter api db:seed",
     "db:studio": "pnpm --filter api db:studio",
+    "sync": "node scripts/sync-repos.js",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down"
   },
