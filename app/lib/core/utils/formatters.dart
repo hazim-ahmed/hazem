@@ -12,3 +12,8 @@ class AppFormatters {
 
   static String formatDate(DateTime dt) => date.format(dt);
 }
+
+class Formatters {
+  static String currency(dynamic amount) => AppFormatters.formatCurrency(amount);
+  static String date(DateTime dt) => AppFormatters.formatDate(dt);
+}

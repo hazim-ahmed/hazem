@@ -165,6 +165,26 @@ class NewExpenseViewState extends State<NewExpenseView> {
       );
 
       widget.onSaved();
+    } on OfflineSavedException catch (e) {
+      _amountController.clear();
+      _descriptionController.clear();
+      _notesController.clear();
+      _manualVoucherController.clear();
+      _paymentReferenceController.clear();
+      _invoiceNumberController.clear();
+      _invoiceAmountController.clear();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message, style: const TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: const Color(0xFFD97706),
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      widget.onSaved();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

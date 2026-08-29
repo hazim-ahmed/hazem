@@ -139,6 +139,11 @@ class TransactionCard extends StatelessWidget {
     String label;
 
     switch (status) {
+      case 'OFFLINE_PENDING':
+        bg = const Color(0xFFFEF3C7);
+        text = const Color(0xFFD97706);
+        label = 'معلق محلياً 📡';
+        break;
       case 'APPROVED':
         bg = const Color(0xFFDCFCE7);
         text = const Color(0xFF15803D);

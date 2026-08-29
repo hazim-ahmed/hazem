@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/network/api_client.dart';
 import '../../core/storage/cache_service.dart';
+import '../../core/storage/offline_queue_service.dart';
 import '../../core/utils/response_helpers.dart';
 import '../../models/transaction_model.dart';
 import '../../services/expense_service.dart';
@@ -24,6 +25,8 @@ class TransactionsView extends StatefulWidget {
 class TransactionsViewState extends State<TransactionsView> {
   late ExpenseService _expenseService;
   bool _loading = true;
+  bool _syncing = false;
+  int _pendingCount = 0;
   Map<String, dynamic>? _todayJournal;
   List<ExpenseTransactionModel> _transactions = [];
   String _filterStatus = 'ALL';
@@ -39,6 +42,7 @@ class TransactionsViewState extends State<TransactionsView> {
   void reload() => _fetchData();
 
   Future<void> _loadCachedThenNetwork() async {
+    _pendingCount = await OfflineQueueService.getPendingCount();
     final cached = await CacheService.getCachedData('today_data');
     if (cached != null && mounted) {
       final txListRaw = asList(cached['transactions']);
@@ -53,25 +57,93 @@ class TransactionsViewState extends State<TransactionsView> {
 
   Future<void> _fetchData() async {
     try {
+      final syncResult = await _expenseService.syncPendingOfflineExpenses();
       final data = await _expenseService.fetchTodayData();
+      final pendingAfter = await OfflineQueueService.getPendingCount();
+
       if (mounted) {
         setState(() {
           _todayJournal = data['journal'];
           _transactions = data['transactions'];
+          _pendingCount = pendingAfter;
           _loading = false;
         });
+
+        if (syncResult['synced'] != null && syncResult['synced'] > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('تمت مزامنة ${syncResult['synced']} مصروفات مع السيرفر بنجاح! 🎉',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: const Color(0xFF0F766E),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تعذر تحديث البيانات: $e'),
+            content: Text('تنبيه: $e'),
+            backgroundColor: const Color(0xFFE11D48),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _triggerManualSync() async {
+    setState(() => _syncing = true);
+    try {
+      final res = await _expenseService.syncPendingOfflineExpenses();
+      final synced = res['synced'] ?? 0;
+      final remaining = res['remaining'] ?? 0;
+      final lastErr = res['lastError'];
+
+      await _fetchData();
+
+      if (!mounted) return;
+      if (synced > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تمت مزامنة $synced مصروفات بنجاح! 🎉'),
+            backgroundColor: const Color(0xFF0F766E),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else if (lastErr != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('نتيجة المزامنة: $lastErr'),
+            backgroundColor: const Color(0xFFD97706),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else if (remaining == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('جميع المصروفات متطابقة مع السيرفر ومزامنة 100% ✅'),
+            backgroundColor: Color(0xFF0F766E),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل الاتصال: $e'),
             backgroundColor: const Color(0xFFE11D48),
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
     }
   }
 
@@ -103,6 +175,61 @@ class TransactionsViewState extends State<TransactionsView> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // 0. Offline Pending Sync Banner
+          if (_pendingCount > 0) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.cloud_upload_outlined, color: Color(0xFFD97706), size: 24),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'يوجد $_pendingCount مصروفات معلقة محلياً 📡',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                            color: Color(0xFF92400E),
+                          ),
+                        ),
+                        const Text(
+                          'اضغط لمزامنتها مع السيرفر الرئيسي فور توفر النت',
+                          style: TextStyle(fontSize: 11, color: Color(0xFFB45309)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: _syncing ? null : _triggerManualSync,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFD97706),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: _syncing
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('مزامنة 🔄', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+
           // 1. Summary Card
           SummaryCard(
             journal: _todayJournal,
@@ -129,6 +256,7 @@ class TransactionsViewState extends State<TransactionsView> {
             child: Row(
               children: [
                 _filterChip('ALL', 'الكل (${_transactions.length})'),
+                _filterChip('OFFLINE_PENDING', 'معلق أوفلاين ($_pendingCount)'),
                 _filterChip('APPROVED', 'معتمد'),
                 _filterChip('PENDING_REVIEW', 'قيد المراجعة'),
                 _filterChip('REJECTED', 'مرفوض'),

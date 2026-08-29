@@ -5,6 +5,7 @@ class AuthUser {
   final String? email;
   final String? employeeNumber;
   final List<String> roles;
+  final List<String> permissions;
 
   AuthUser({
     required this.id,
@@ -13,7 +14,18 @@ class AuthUser {
     this.email,
     this.employeeNumber,
     required this.roles,
+    this.permissions = const [],
   });
+
+  bool get isAdmin => roles.any((r) => r.toUpperCase() == 'ADMIN');
+  bool get isAccountant => roles.any((r) => r.toUpperCase() == 'ACCOUNTANT');
+  bool get isManager => roles.any((r) => r.toUpperCase() == 'MANAGER');
+  bool get canReviewExpenses =>
+      isAdmin ||
+      isAccountant ||
+      isManager ||
+      permissions.contains('transactions:approve') ||
+      permissions.contains('transactions:reject');
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
@@ -23,6 +35,7 @@ class AuthUser {
       email: json['email']?.toString(),
       employeeNumber: json['employeeNumber']?.toString(),
       roles: (json['roles'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      permissions: (json['permissions'] as List?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
 
@@ -33,5 +46,6 @@ class AuthUser {
         'email': email,
         'employeeNumber': employeeNumber,
         'roles': roles,
+        'permissions': permissions,
       };
 }
