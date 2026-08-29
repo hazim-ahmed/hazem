@@ -18,6 +18,67 @@ export default function UsersPage() {
   const [resetMessage, setResetMessage] = useState('');
   const [resetError, setResetError] = useState('');
 
+  // Quick Role Edit Modal
+  const [roleModalUser, setRoleModalUser] = useState<any>(null);
+  const [selectedRoleIds, setSelectedRoleIds] = useState<number[]>([]);
+  const [roleModalMessage, setRoleModalMessage] = useState('');
+  const [roleModalError, setRoleModalError] = useState('');
+
+  const DEFAULT_ROLES = [
+    { id: 1, name: 'ADMIN', label: 'مدير نظام كامل (ADMIN)', desc: 'صلاحيات مطلقة لكافة وظائف وإعدادات النظام' },
+    { id: 2, name: 'CASHIER', label: 'كاشير / أمين صندوق (CASHIER)', desc: 'تسجيل المصروفات واستعراض يوميته' },
+    { id: 3, name: 'ACCOUNTANT', label: 'محاسب مراجع ومعتمد (ACCOUNTANT)', desc: 'تدقيق واعتماد ورفض المصروفات وإغلاق اليوميات' },
+    { id: 4, name: 'MANAGER', label: 'مدير اعتمادات ومشاريع (MANAGER)', desc: 'إدارة المشاريع واعتماد المصروفات والتقارير' },
+    { id: 5, name: 'VIEWER', label: 'مشاهد ومراجع فقط (VIEWER)', desc: 'استعراض الحركات والتقارير دون تعديل' },
+  ];
+
+  const { data: rolesList = [] } = useQuery({
+    queryKey: ['roles'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/roles');
+        return res.data?.data || DEFAULT_ROLES;
+      } catch (_) {
+        return DEFAULT_ROLES;
+      }
+    },
+  });
+
+  const roles = rolesList.length > 0 ? rolesList : DEFAULT_ROLES;
+
+  const updateRolesMutation = useMutation({
+    mutationFn: async ({ id, roleIds }: { id: number; roleIds: number[] }) => {
+      const res = await api.patch(`/users/${id}/roles`, { roleIds });
+      return res.data;
+    },
+    onSuccess: () => {
+      setRoleModalMessage('تم تحديث صلاحيات وأدوار المستخدم بنجاح! 🎉');
+      setRoleModalError('');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setTimeout(() => {
+        setRoleModalUser(null);
+        setRoleModalMessage('');
+      }, 1200);
+    },
+    onError: (err: any) => {
+      setRoleModalError(err.response?.data?.message || 'تعذر تحديث الأدوار والصلاحيات');
+    },
+  });
+
+  const openRoleModal = (u: any) => {
+    setRoleModalUser(u);
+    setRoleModalMessage('');
+    setRoleModalError('');
+    if (u.roles && u.roles.length > 0) {
+      const ids = roles
+        .filter((r: any) => u.roles.some((ur: string) => ur.toUpperCase() === r.name.toUpperCase()))
+        .map((r: any) => Number(r.id));
+      setSelectedRoleIds(ids.length > 0 ? ids : [2]);
+    } else {
+      setSelectedRoleIds([2]);
+    }
+  };
+
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users', search, statusFilter, roleFilter],
     queryFn: async () => {
@@ -173,6 +234,15 @@ export default function UsersPage() {
                       <span>عرض</span>
                     </Link>
 
+                    <button
+                      onClick={() => openRoleModal(u)}
+                      className="text-xs bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-purple-200 dark:border-purple-800/60 transition shadow-sm"
+                      title="تعديل صلاحيات وأدوار المستخدم"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>الصلاحيات</span>
+                    </button>
+
                     <Link
                       href={`/users/${u.id}/edit`}
                       className="text-xs bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-950/60 dark:hover:bg-cyan-900/60 text-cyan-700 dark:text-cyan-300 font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-cyan-200 dark:border-cyan-800/60 transition"
@@ -263,6 +333,98 @@ export default function UsersPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Edit Roles Modal */}
+        {roleModalUser && (
+          <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-5 border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                  <h3 className="font-extrabold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <span>تعديل أدوار وصلاحيات ({roleModalUser.fullName})</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">اسم المستخدم: @{roleModalUser.username}</p>
+                </div>
+              </div>
+
+              {roleModalMessage && (
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs rounded-xl font-bold flex items-center gap-2">
+                  <span>{roleModalMessage}</span>
+                </div>
+              )}
+
+              {roleModalError && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-bold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{roleModalError}</span>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">اختر الأدوار الممنوحة للمستخدم:</label>
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  {roles.map((r: any) => {
+                    const isChecked = selectedRoleIds.includes(Number(r.id));
+                    return (
+                      <label
+                        key={r.id}
+                        className={`p-3 rounded-xl border text-xs font-bold flex items-start gap-3 cursor-pointer transition ${
+                          isChecked
+                            ? 'bg-purple-50 border-purple-400 text-purple-900 dark:bg-purple-950/70 dark:text-purple-200 dark:border-purple-600'
+                            : 'bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const rId = Number(r.id);
+                            if (e.target.checked) {
+                              setSelectedRoleIds([...selectedRoleIds, rId]);
+                            } else {
+                              setSelectedRoleIds(selectedRoleIds.filter((id) => id !== rId));
+                            }
+                          }}
+                          className="mt-0.5 rounded text-purple-600 focus:ring-purple-500"
+                        />
+                        <div className="flex-1">
+                          <div className="font-extrabold">{r.name}</div>
+                          <div className="text-[11px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">
+                            {r.description || r.desc || r.label}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  disabled={updateRolesMutation.isPending || selectedRoleIds.length === 0}
+                  onClick={() => updateRolesMutation.mutate({ id: roleModalUser.id, roleIds: selectedRoleIds })}
+                  className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition shadow-md shadow-purple-600/20 disabled:opacity-50"
+                >
+                  {updateRolesMutation.isPending ? 'جاري حفظ الصلاحيات...' : 'حفظ الصلاحيات المحددة'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRoleModalUser(null);
+                    setRoleModalMessage('');
+                    setRoleModalError('');
+                  }}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm transition"
+                >
+                  إلغاء
+                </button>
+              </div>
             </div>
           </div>
         )}

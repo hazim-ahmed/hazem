@@ -165,8 +165,8 @@ export default function NewTransactionPage() {
       return;
     }
 
-    if (isProjectRequired && !projectId) {
-      setErrorMessage('اختيار المشروع إجباري حسب إعدادات النظام الحالية');
+    if (!projectId) {
+      setErrorMessage('يرجى اختيار المشروع (ربط المصروف بمشروع إجباري)');
       return;
     }
 
@@ -372,14 +372,15 @@ export default function NewTransactionPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="form-label">
-                  المشروع {isProjectRequired ? '*' : '(اختياري)'}
+                  المشروع * (إجباري)
                 </label>
                 <select
+                  required
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
-                  className={isProjectRequired ? '!border-cyan-400' : ''}
+                  className="!border-cyan-400"
                 >
-                  <option value="">{isProjectRequired ? 'اختر المشروع (إجباري حالياً)...' : 'بدون مشروع (اختياري)...'}</option>
+                  <option value="">اختر المشروع (إجباري)...</option>
                   {projects.map((p: any) => (
                     <option key={p.id} value={p.id}>
                       {p.projectName} (كود: {p.projectCode})

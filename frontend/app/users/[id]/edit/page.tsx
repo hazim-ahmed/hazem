@@ -28,10 +28,27 @@ export default function EditUserPage() {
     queryFn: async () => (await api.get(`/users/${userId}`)).data.data,
   });
 
-  const { data: roles = [] } = useQuery({
+  const DEFAULT_ROLES = [
+    { id: 1, name: 'ADMIN', label: 'مدير نظام كامل (ADMIN)' },
+    { id: 2, name: 'CASHIER', label: 'كاشير / أمين صندوق (CASHIER)' },
+    { id: 3, name: 'ACCOUNTANT', label: 'محاسب مراجع ومعتمد (ACCOUNTANT)' },
+    { id: 4, name: 'MANAGER', label: 'مدير اعتمادات ومشاريع (MANAGER)' },
+    { id: 5, name: 'VIEWER', label: 'مشاهد ومراجع فقط (VIEWER)' },
+  ];
+
+  const { data: rolesData = [] } = useQuery({
     queryKey: ['roles'],
-    queryFn: async () => (await api.get('/roles')).data.data || [],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/roles');
+        return res.data?.data || [];
+      } catch (_) {
+        return DEFAULT_ROLES;
+      }
+    },
   });
+
+  const roles = rolesData.length > 0 ? rolesData : DEFAULT_ROLES;
 
   const { data: allProjects = [] } = useQuery({
     queryKey: ['projects', true],
@@ -50,9 +67,12 @@ export default function EditUserPage() {
       setEmail(user.email || '');
       setPhone(user.phone || '');
       setMustChangePassword(Boolean(user.mustChangePassword));
-      if (user.roles && roles.length > 0) {
-        const rIds = roles.filter((r: any) => user.roles.includes(r.name)).map((r: any) => r.id);
-        setSelectedRoleIds(rIds);
+
+      if (user.roles && user.roles.length > 0) {
+        const rIds = roles
+          .filter((r: any) => user.roles.some((ur: string) => ur.toUpperCase() === r.name.toUpperCase()))
+          .map((r: any) => Number(r.id));
+        setSelectedRoleIds(rIds.length > 0 ? rIds : [2]);
       }
       if (user.userProjects) {
         setSelectedProjectIds(user.userProjects.map((up: any) => Number(up.projectId)));
@@ -61,7 +81,7 @@ export default function EditUserPage() {
         setSelectedCashboxIds(user.userCashboxes.map((uc: any) => Number(uc.cashboxId)));
       }
     }
-  }, [user, roles]);
+  }, [user, rolesData]);
 
   const updateMutation = useMutation({
     mutationFn: async (payload: any) => {

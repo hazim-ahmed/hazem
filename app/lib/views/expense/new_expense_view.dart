@@ -83,6 +83,10 @@ class NewExpenseViewState extends State<NewExpenseView> {
           _beneficiaryId ??= _beneficiaries.firstOrNull?.id;
           _categoryId ??= _categories.firstOrNull?.id;
           _paymentMethodId ??= _paymentMethods.firstOrNull?.id;
+          _projectId ??= _projects.firstOrNull?.id;
+          if (_projectId != null) {
+            _fetchUnitsForProject(_projectId);
+          }
         });
       }
     } catch (_) {}
@@ -98,6 +102,10 @@ class NewExpenseViewState extends State<NewExpenseView> {
       _beneficiaryId ??= _beneficiaries.firstOrNull?.id;
       _categoryId ??= _categories.firstOrNull?.id;
       _paymentMethodId ??= _paymentMethods.firstOrNull?.id;
+      _projectId ??= _projects.firstOrNull?.id;
+      if (_projectId != null) {
+        _fetchUnitsForProject(_projectId);
+      }
     });
   }
 
@@ -127,6 +135,17 @@ class NewExpenseViewState extends State<NewExpenseView> {
 
   Future<void> _submitExpense() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_projectId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('يرجى اختيار المشروع (ربط المصروف بمشروع إجباري) ⚠️', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: const Color(0xFFE11D48),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
     setState(() => _saving = true);
 
     try {
@@ -276,15 +295,16 @@ class NewExpenseViewState extends State<NewExpenseView> {
 
               // 4. Project & Unit
               CustomDropdownField(
-                label: 'المشروع (اختياري / حسب النظام)',
+                label: 'المشروع * (إجباري)',
                 icon: Icons.business_rounded,
                 value: _projectId,
                 items: _projects,
-                includeNullOption: true,
+                includeNullOption: false,
                 onChanged: (id) {
                   setState(() => _projectId = id);
                   _fetchUnitsForProject(id);
                 },
+                validator: (v) => v == null ? 'يرجى اختيار المشروع (ربط المصروف بمشروع إجباري)' : null,
               ),
               if (_projectId != null) ...[
                 const SizedBox(height: 16),
