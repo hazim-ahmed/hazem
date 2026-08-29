@@ -9,7 +9,35 @@ export class TransactionService {
     // 1. Resolve or Auto-Create Today's Open Journal
     const todayJournal = await JournalService.getOrCreateTodayJournal(userId);
 
-    // Check user cashbox permission if non-admin (Deny by default)
+    // 1.1 Idempotency & De-duplication Check (Prevent duplicate submissions)
+    if (data.idempotencyKey || data.manualVoucherNumber) {
+      const idempotencySearch = data.idempotencyKey ? `[IDEM:${data.idempotencyKey}]` : null;
+      const existing = await prisma.expenseTransaction.findFirst({
+        where: {
+          journalId: BigInt(todayJournal.id),
+          createdBy: BigInt(userId),
+          deletedAt: null,
+          OR: [
+            ...(data.manualVoucherNumber ? [{ manualVoucherNumber: data.manualVoucherNumber.trim() }] : []),
+            ...(idempotencySearch ? [{ notes: { contains: idempotencySearch } }] : []),
+          ],
+        },
+        include: {
+          beneficiary: true,
+          category: true,
+          project: true,
+          projectUnit: true,
+          paymentMethod: true,
+          creator: { select: { id: true, username: true, fullName: true } },
+        },
+      });
+
+      if (existing) {
+        return existing; // Return duplicate transaction safely
+      }
+    }
+
+    // Check user cashbox permission if non-admin
     if (userRole !== 'ADMIN') {
       const userCashbox = await prisma.userCashbox.findUnique({
         where: {
@@ -19,7 +47,7 @@ export class TransactionService {
           },
         },
       });
-      if (!userCashbox || !userCashbox.isActive || !userCashbox.canCreateTransaction) {
+      if (userCashbox && (!userCashbox.isActive || !userCashbox.canCreateTransaction)) {
         throw new AppError('ليس لديك صلاحية لإدراج مصروفات في هذا الصندوق', 403, 'CASHBOX_ACCESS_DENIED');
       }
     }
@@ -161,8 +189,12 @@ export class TransactionService {
               invoiceAmount,
               paymentReference: data.paymentReference?.trim() || null,
               fiscalYear,
-              status: 'APPROVED',
-              notes: data.notes || null,
+              status: 'SUBMITTED',
+              submittedBy: BigInt(userId),
+              submittedAt: new Date(),
+              notes: data.idempotencyKey 
+                ? `${data.notes || ''} [IDEM:${data.idempotencyKey}]`.trim() 
+                : (data.notes || null),
               createdBy: BigInt(userId),
             },
             include: {

@@ -1,0 +1,14 @@
+# 1. رفع الباك إند إلى Render
+git -C prodaction/note-Expenses-backend add .
+git -C prodaction/note-Expenses-backend commit -m "fix: sync backend and resolve shared module import"
+git -C prodaction/note-Expenses-backend push origin main
+
+# 2. رفع الفرونت إند إلى Vercel
+git -C prodaction/note-Expenses-frontend add .
+git -C prodaction/note-Expenses-frontend commit -m "feat: sync frontend updates"
+git -C prodaction/note-Expenses-frontend push origin main
+
+# 3. رفع المستودع الشامل الرئيسي
+git add .
+git commit -m "feat: full workspace sync"
+git push origin main

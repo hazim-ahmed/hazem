@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
+import { useKeepAlive } from '@/hooks/useKeepAlive';
 
 interface AuthUser {
   id: number;
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const PUBLIC_ROUTES = ['/login'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  useKeepAlive();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
